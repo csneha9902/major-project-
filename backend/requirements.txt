@@ -1,0 +1,23 @@
+uvicorn[standard]
+fastapi
+click
+numpy
+pandas
+scikit-learn
+torch
+pennylane
+mne
+nibabel
+requests
+# Optimizer (Ocean SDK)
+dwave-ocean-sdk
+# Auth & OAuth
+python-jose[cryptography]
+python-multipart
+authlib
+# PDF Export
+reportlab
+Pillow
+spikingjelly
+matplotlib
+scipy

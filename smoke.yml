@@ -1,0 +1,35 @@
+name: Smoke Test
+on: [push, pull_request]
+jobs:
+  backend-smoke:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+          pip install uvicorn[standard]
+      - name: Smoke run
+        run: |
+          python - <<'PY'
+          from quantum_ai_optimizer.pipeline.preprocess import preprocess_run
+          from quantum_ai_optimizer.pipeline.baseline import train_baseline
+          from quantum_ai_optimizer.pipeline.hybrid import hybrid_run
+          preprocess_run()
+          train_baseline()
+          hybrid_run()
+          print("OK")
+          PY
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results
+          path: backend/results
