@@ -1,5 +1,6 @@
 import { Sun, Sparkles } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import GlowButton from './ui/GlowButton';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -24,18 +25,18 @@ export default function WellnessTipsPanel({ currentState }) {
   return (
     <div className="wellness-panel">
       <div className="panel-header">
-        <Sun className="icon-sun" />
+        <Sun className="icon-sun" size={22} />
         <h3>Wellness & Learning Tips</h3>
       </div>
       <div className="tip-content">
-        <p>{loading ? 'Loading...' : tip}</p>
+        <p className={loading ? 'text-[var(--text-muted)] italic' : ''}>
+          {loading ? 'Loading...' : tip}
+        </p>
       </div>
-      <button className="btn-get-tip" onClick={fetchTip} disabled={loading}>
-        <Sparkles className="icon-sparkle" />
+      <GlowButton variant="blue" onClick={fetchTip} disabled={loading}>
+        <Sparkles size={16} />
         Get Dynamic Tip
-      </button>
+      </GlowButton>
     </div>
   );
 }
-
-

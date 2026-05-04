@@ -8,6 +8,7 @@ import WellnessTipsPanel from "../components/WellnessTipsPanel";
 import SessionSummaryPanel from "../components/SessionSummaryPanel";
 import { useDataStream } from "../hooks/useDataStream";
 import { useAuth } from "../context/AuthContext";
+import GlowButton from "../components/ui/GlowButton";
 import "../App.css";
 
 export default function Dashboard() {
@@ -48,47 +49,60 @@ export default function Dashboard() {
   const displayRecommendation = hoveredRecommendation || frame?.recommendation;
 
   return (
-    <div className="app-container">
-      <div className="dashboard-header">
-        <Header isRunning={running} onStart={startSimulation} onStop={stopSimulation} />
-        <div className="user-menu">
-          <span className="user-name">Dr. {user?.name || user?.email || 'User'}</span>
-          <button className="btn-logout" onClick={logout}>Logout</button>
-        </div>
+    <>
+      {/* Animated background */}
+      <div className="app-background">
+        <div className="orb-3" />
+        <div className="grid-overlay" />
       </div>
 
-      <div className="dashboard-nav">
-        <button className="nav-btn active" onClick={() => navigate('/dashboard')}>
-          Live Dashboard
-        </button>
-        <button className="nav-btn" onClick={() => navigate('/analysis')}>
-          File Analysis
-        </button>
-      </div>
+      <div className="app-container">
+        {/* Top bar */}
+        <div className="dashboard-header">
+          <Header isRunning={running} onStart={startSimulation} onStop={stopSimulation} />
+          <div className="user-menu">
+            <span className="user-name font-heading">
+              Dr. {user?.name || user?.email || 'User'}
+            </span>
+            <button className="btn-logout" onClick={logout}>Logout</button>
+          </div>
+        </div>
 
-      <div className="main-content">
-        <div className="left-section">
-          <CurrentStateCard state={displayState} />
-          <BiometricTrendsChart 
-            data={chartData} 
-            currentMetrics={currentMetrics}
-            onHover={(state, recommendation) => {
-              setHoveredState(state);
-              setHoveredRecommendation(recommendation);
-            }}
-            onHoverEnd={() => {
-              setHoveredState(null);
-              setHoveredRecommendation(null);
-            }}
-          />
-          <WellnessTipsPanel currentState={displayState} />
+        {/* Navigation */}
+        <div className="dashboard-nav">
+          <button className="nav-btn active" onClick={() => navigate('/dashboard')}>
+            <span className="live-dot mr-2" style={{ width: 6, height: 6 }} />
+            Live Dashboard
+          </button>
+          <button className="nav-btn" onClick={() => navigate('/analysis')}>
+            File Analysis
+          </button>
         </div>
-        <div className="right-section">
-          <TaskRecommendationCard recommendation={displayRecommendation} />
-          <SessionSummaryPanel isRunning={running} />
+
+        {/* Main Content */}
+        <div className="main-content stagger-children">
+          <div className="left-section">
+            <CurrentStateCard state={displayState} />
+            <BiometricTrendsChart
+              data={chartData}
+              currentMetrics={currentMetrics}
+              onHover={(state, recommendation) => {
+                setHoveredState(state);
+                setHoveredRecommendation(recommendation);
+              }}
+              onHoverEnd={() => {
+                setHoveredState(null);
+                setHoveredRecommendation(null);
+              }}
+            />
+            <WellnessTipsPanel currentState={displayState} />
+          </div>
+          <div className="right-section">
+            <TaskRecommendationCard recommendation={displayRecommendation} />
+            <SessionSummaryPanel isRunning={running} />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
-

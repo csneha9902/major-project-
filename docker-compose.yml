@@ -1,7 +1,7 @@
 services:
   backend:
     build: ./backend
-    container_name: quantum-ai-backend
+    container_name: snn-ai-backend
     ports: ["8000:8000"]
     volumes:
       - ./backend/results:/app/results
@@ -13,7 +13,7 @@ services:
 
   frontend:
     build: ./frontend
-    container_name: quantum-ai-frontend
+    container_name: snn-ai-frontend
     ports: ["5173:80"]
     environment:
       - VITE_API_URL=http://localhost:8000

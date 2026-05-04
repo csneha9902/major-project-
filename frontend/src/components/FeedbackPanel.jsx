@@ -18,27 +18,35 @@ export default function FeedbackPanel() {
   useEffect(() => { load(); }, []);
 
   if (!data) return (
-    <div className="p-4 border rounded text-sm">
-      <div className="font-semibold mb-2">Personalized Tips</div>
-      <div className="text-gray-500">No feedback yet.</div>
+    <div className="glass-card p-5">
+      <div className="font-heading font-semibold text-[var(--text-primary)] mb-2">Personalized Tips</div>
+      <div className="text-[var(--text-muted)] text-sm">No feedback yet.</div>
     </div>
   );
 
   return (
-    <div className="p-4 border rounded text-sm">
-      <div className="font-semibold mb-2">Personalized Tips</div>
-      <div className="text-xs text-gray-600 mb-2">
+    <div className="glass-card p-5">
+      <div className="font-heading font-semibold text-[var(--text-primary)] mb-3">Personalized Tips</div>
+      <div className="text-xs font-mono text-[var(--text-secondary)] mb-3">
         Summary — Accuracy: {Number.isFinite(data.summary?.accuracy) ? data.summary.accuracy.toFixed(3) : "NaN"},
         AUC: {Number.isFinite(data.summary?.auc) ? data.summary.auc.toFixed(3) : "NaN"}
       </div>
-      <ul className="list-disc pl-5 space-y-1">
-        {data.tips?.map((t, i) => <li key={i}>{t}</li>)}
+      <ul className="space-y-2">
+        {data.tips?.map((t, i) => (
+          <li key={i} className="text-sm text-[var(--text-secondary)] pl-3 border-l-2 border-[rgba(6,214,160,0.2)]">
+            {t}
+          </li>
+        ))}
       </ul>
       {!!(data.actions?.length) && (
         <>
-          <div className="font-semibold mt-3 mb-1">Next Actions</div>
-          <ul className="list-disc pl-5 space-y-1">
-            {data.actions.map((a, i) => <li key={i}>{a}</li>)}
+          <div className="font-heading font-semibold text-[var(--text-primary)] mt-4 mb-2 text-sm">Next Actions</div>
+          <ul className="space-y-2">
+            {data.actions.map((a, i) => (
+              <li key={i} className="text-sm text-[var(--text-secondary)] pl-3 border-l-2 border-[rgba(139,92,246,0.2)]">
+                {a}
+              </li>
+            ))}
           </ul>
         </>
       )}

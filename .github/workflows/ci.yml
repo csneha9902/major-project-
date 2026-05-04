@@ -17,7 +17,7 @@ jobs:
       - name: Run backend smoke
         run: |
           cd backend
-          python -c "from quantum_ai_optimizer.app import app; print('app imported')"
+          python -c "from snn_ai_optimizer.app import app; print('app imported')"
       - name: Build frontend
         run: |
           cd frontend

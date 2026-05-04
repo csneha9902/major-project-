@@ -1,17 +1,17 @@
 # SNN-AI Cognitive Health & Learning Optimizer
 
-A full-stack prototype that ingests EEG/HRV data in real-time, infers cognitive state (Focused/Neutral/Stressed), and recommends the next learning task using a quantum-inspired optimizer and **event-driven SNNs**.
+A full-stack prototype that ingests EEG/HRV data in real-time, infers cognitive state (Focused/Neutral/Stressed), and recommends the next learning task using **event-driven SNNs** and **Q-Learning**.
 
 ---
 
 ## What it does
 - Streams frames every ~1–2s with: timestamp, EEG alpha/beta, HRV LF/HF, inferred cognitive state, and a recommendation (task + difficulty).
-- Recommends tasks via a QUBO-based optimizer (D-Wave Ocean SDK if available; heuristic fallback otherwise).
+- Recommends tasks via a dual-layer SNN + Q-Learning optimizer.
 - Uses **Event-Driven Spiking Neural Networks (SNN)** for biologically plausible stress detection.
 - Web dashboard shows live charts, state, recommendation, and metrics.
 
 ### 🧠 Event-Driven Spiking Neural Network (SNN) Module
-This project now includes an **Event-Driven Spiking Neural Network** for continuous cognitive health assessment.
+This project uses an **Event-Driven Spiking Neural Network** for continuous cognitive health assessment and task recommendation.
 
 **Features:**
 - **Spike-Based Processing:** Utilizes `SpikingJelly` for biologically plausible neural processing.
@@ -23,14 +23,14 @@ This project now includes an **Event-Driven Spiking Neural Network** for continu
 2.  **Train Model:**
     Run the training script to generate the initial SNN model:
     ```bash
-    python backend/quantum_ai_optimizer/snn/train.py
+    python backend/snn_ai_optimizer/snn/train.py
     ```
     This will save `snn_cognitive_health.pth`.
 3.  **Run Backend:**
     The backend will automatically load the SNN model if present.
     ```bash
     cd backend
-    uvicorn quantum_ai_optimizer.app:app --reload
+    uvicorn snn_ai_optimizer.app:app --reload
     ```
 4.  **API Endpoints:**
     - `POST /api/snn/train`: Trigger background training.
@@ -42,13 +42,13 @@ This project now includes an **Event-Driven Spiking Neural Network** for continu
 ## Project structure
 ```
 backend/
-  quantum_ai_optimizer/
+  snn_ai_optimizer/
     app.py               # FastAPI app & APIs
     streaming.py         # DataStreamer (simulator or web feed)
     cognitive.py         # Rule-based cognitive state engine
-    optimizer.py         # QUBO task optimizer (Ocean SDK if present)
-    models/vqc.py        # Variational Quantum Classifier (PennyLane)
-    pipeline/            # preprocess, baseline, hybrid
+    optimizer.py         # SNN + Q-Learning task optimizer
+    models/snn_recommender.py # SNN Task Recommender
+    pipeline/            # preprocess, baseline, snn_pipeline
     datasets/            # EEG/MRI loaders
     utils/logger.py      # metrics/log history helpers
 frontend/
@@ -62,7 +62,7 @@ docker-compose.yml
 
 1) From project root:
 ```powershell
-cd "C:\Users\thanm\OneDrive\Desktop\Stuff\Quantum AI Project\quantum-ai-optimizer\quantum-ai-optimizer"
+cd "snn-ai-optimizer"
 ```
 
 2) (Optional) Enable web ingestion (backend polls an HTTP feed). To use the built-in mock feed, create `docker-compose.override.yml`:
@@ -110,7 +110,7 @@ python -m venv venv
 ./venv/Scripts/Activate.ps1
 pip install -r requirements.txt
 pip install -e .
-uvicorn quantum_ai_optimizer.app:app --host 0.0.0.0 --port 8000
+uvicorn snn_ai_optimizer.app:app --host 0.0.0.0 --port 8000
 ```
 
 Frontend (React + Vite):
@@ -131,7 +131,7 @@ npm run dev
   - Simulation Mode: Focused / Neutral / Stressed (affects alpha/beta and LF/HF)
 - Cards show current cognitive state and recommended task.
 - Live chart plots alpha, beta, LF/HF in real time.
-- Bottom chart shows baseline vs hybrid metrics if pipeline has been run.
+- Bottom chart shows baseline vs SNN metrics if pipeline has been run.
 
 ---
 
@@ -146,7 +146,7 @@ npm run dev
   - Status: `GET /api/sim/status` (includes ingestion info)
 - Mock web feed (for testing web ingestion): `GET /mock/eeg?mode=...`
 - Pipelines:
-  - Run: `POST /run/pipeline` (preprocess → baseline → hybrid)
+  - Run: `POST /run/pipeline` (preprocess → baseline → snn)
   - Latest metrics: `GET /results/metrics`
   - History: `GET /results/history`
   - Artifacts (static): `/files/*` (e.g., `/files/latest_metrics.json`)
@@ -175,14 +175,14 @@ curl -X POST http://localhost:8000/run/pipeline
 What happens:
 1. Preprocess: loads EEG/MRI (falls back to synthetic), writes features under `results/preprocess/`.
 2. Baseline: trains a classical model, writes `results/baseline/metrics.json`.
-3. Hybrid: attempts VQC (PennyLane + Torch) or falls back to classical; writes `results/hybrid/metrics.json`.
+3. SNN: trains the cognitive SNN and SNN recommender; writes `results/snn/metrics.json`.
 4. All steps update `results/latest_metrics.json` and append to `results/history/metrics_log.json`.
 
 View artifacts:
 ```
 http://localhost:8000/files/latest_metrics.json
 http://localhost:8000/files/baseline/metrics.json
-http://localhost:8000/files/hybrid/metrics.json
+http://localhost:8000/files/snn/metrics.json
 http://localhost:8000/files/history/metrics_log.json
 ```
 
@@ -202,10 +202,8 @@ http://localhost:8000/files/history/metrics_log.json
   - Ensure ports 8000 (backend) and 5173 (frontend) are free
 - Nothing updates on Stop/Start:
   - The chart buffer freezes when stopped; click Start to resume appending
-- Ocean SDK not installed:
-  - Task recommendation falls back to heuristic; install `dwave-ocean-sdk` to enable QUBO solver
-- PennyLane/Torch missing:
-  - Hybrid training falls back to classical; install requirements to use VQC
+- SpikingJelly/Torch missing:
+  - SNN inference will fall back to rule-based heuristics and numpy LIF models.
 
 ---
 

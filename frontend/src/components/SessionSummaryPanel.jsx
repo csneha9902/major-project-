@@ -1,5 +1,6 @@
-import { Brain, BarChart } from 'lucide-react';
+import { Brain, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
+import GlowButton from './ui/GlowButton';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -26,7 +27,7 @@ export default function SessionSummaryPanel({ isRunning }) {
       }
     } catch (err) {
       console.error('Failed to fetch summary:', err);
-      setError(err.message || 'Failed to fetch session summary. Make sure the simulation has been running.');
+      setError(err.message || 'Failed to fetch session summary.');
     } finally {
       setLoading(false);
     }
@@ -41,13 +42,14 @@ export default function SessionSummaryPanel({ isRunning }) {
       {expanded && summary ? (
         <div className="summary-content">
           <p>{summary}</p>
-          <button 
-            className="btn-refresh-summary" 
+          <GlowButton 
+            variant="cyan" 
             onClick={() => { setExpanded(false); setSummary(''); fetchSummary(); }}
             disabled={loading}
+            className="mt-3"
           >
             Refresh Summary
-          </button>
+          </GlowButton>
         </div>
       ) : (
         <div className="summary-actions">
@@ -59,18 +61,16 @@ export default function SessionSummaryPanel({ isRunning }) {
           {!isRunning && !error && (
             <p className="summary-hint">Start the simulation to generate a session summary.</p>
           )}
-          <button 
-            className="btn-get-summary" 
+          <GlowButton 
+            variant="violet" 
             onClick={fetchSummary} 
             disabled={loading || !isRunning}
           >
-            <BarChart className="icon-chart" />
+            <BarChart3 size={16} />
             {loading ? 'Loading...' : 'Get Session Summary'}
-          </button>
+          </GlowButton>
         </div>
       )}
     </div>
   );
 }
-
-
