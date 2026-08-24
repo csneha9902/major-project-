@@ -1,11 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-
 import os
-import torch
-from snn_ai_optimizer.snn.model import SNNHealthModel
 
 # Global model instance
 _SNN_MODEL = None
@@ -30,6 +26,8 @@ def _load_snn():
     for path in paths_to_check:
         if os.path.exists(path):
             try:
+                import torch
+                from snn_ai_optimizer.snn.model import SNNHealthModel
                 model = SNNHealthModel(input_size=32, hidden_size=64, output_size=2)
                 model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
                 model.eval()
@@ -42,6 +40,7 @@ def _load_snn():
                 
     _write_log("SNN load failed: No valid model path found")
     return None
+
 
 def compute_cognitive_state(alpha: float, beta: float, lf_hf_ratio: float) -> str:
     """

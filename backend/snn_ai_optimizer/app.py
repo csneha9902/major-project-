@@ -199,7 +199,7 @@ async def broadcast(message: str):
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     active_clients.append(ws)
-    await ws.send_text("Connected to SNN-AI WebSocket ✅")
+    await ws.send_text("Connected to SNN-AI WebSocket")
     try:
         while True:
             await ws.receive_text()  # keep alive
@@ -235,19 +235,19 @@ async def run_pipeline():
     loop = asyncio.get_event_loop()
 
     await loop.run_in_executor(None, preprocess_run)
-    await broadcast("Preprocessing done ✅")
+    await broadcast("Preprocessing done")
     log("Preprocessing done")
 
     await loop.run_in_executor(None, train_baseline)
-    await broadcast("Baseline training done ✅")
+    await broadcast("Baseline training done")
     log("Baseline training done")
 
     await loop.run_in_executor(None, snn_run)
-    await broadcast("SNN training done ✅")
+    await broadcast("SNN training done")
     log("SNN training done")
 
-    await broadcast("✅ Pipeline complete")
-    log("✅ Pipeline complete")
+    await broadcast("Pipeline complete")
+    log("Pipeline complete")
 
     return {"status": "Pipeline complete", "log_file": str(log_file)}
 from snn_ai_optimizer.feedback import generate_feedback
@@ -427,6 +427,24 @@ async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = 
             pass
     # Fallback to demo user if no credentials or validation fails
     return {"sub": "demo@doctor.com", "email": "demo@doctor.com", "name": "Demo Doctor"}
+
+DEMO_MANIFEST_PATH = Path("results/demo_samples/manifest.json")
+
+@app.get("/api/demo-samples")
+async def get_demo_samples():
+    """Return pre-computed synthetic demo datasets for quick evaluation."""
+    if not DEMO_MANIFEST_PATH.exists():
+        try:
+            from snn_ai_optimizer.datasets.generate_synthetic_demo_data import build_all_demo_data
+            build_all_demo_data()
+        except Exception as e:
+            print(f"Failed to auto-generate synthetic demo data: {e}")
+            return JSONResponse({"samples": []})
+    try:
+        data = json.loads(DEMO_MANIFEST_PATH.read_text(encoding="utf-8"))
+        return {"samples": data}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 @app.post("/api/upload")
 async def upload_file(

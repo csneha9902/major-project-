@@ -16,23 +16,27 @@ def verify():
     print("\nStep 1: Primary Inference Check...")
     snn_model = _load_snn()
     if snn_model is not None:
-        print("✅ _load_snn() returned a valid model.")
+        print("[SUCCESS] _load_snn() returned a valid model.")
     else:
-        print("❌ _load_snn() returned None!")
+        print("[FAILED] _load_snn() returned None!")
         sys.exit(1)
         
     print("\nStep 2: Feedback Loop / Q-table Update Check...")
     update_q_table("Focused", 4, 1.0)
     q_table = _load_q_table()
     if "Focused" in q_table and "4" in q_table["Focused"]:
-        print(f"✅ Q-table updated successfully: {q_table['Focused']['4']}")
+        print(f"[SUCCESS] Q-table updated successfully: {q_table['Focused']['4']}")
     else:
-        print("❌ Q-table update failed!")
+        print("[FAILED] Q-table update failed!")
         sys.exit(1)
         
-    print("\nStep 3: Quantum Eradication Check...")
-    result = subprocess.run(["grep", "-rn", "-i", "-E", "quantum|qubo", "."], capture_output=True, text=True)
+    print("\nStep 3: Codebase Cleanliness Check...")
+    result = subprocess.run(
+        ["grep", "-rn", "-i", "-E", "--exclude-dir=node_modules", "--exclude-dir=.git", "--exclude-dir=results", "--exclude-dir=dist", "quantum|qubo", "."],
+        capture_output=True, text=True
+    )
     out = result.stdout.strip()
+
     
     # Filter out verify.py itself from grep output
     lines = [line for line in out.split('\n') if line and "verify.py" not in line and ".git" not in line and ".qodo" not in line and "README.md" not in line]
@@ -46,9 +50,9 @@ def verify():
                 bad_lines.append(line)
                 
     if not bad_lines:
-        print("✅ No remaining code references to quantum or qubo found.")
+        print("[SUCCESS] No remaining code references to quantum or qubo found.")
     else:
-        print("⚠️ Possible remaining references found:")
+        print("[WARNING] Possible remaining references found:")
         for line in bad_lines:
             print(f"  {line}")
             

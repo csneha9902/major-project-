@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Activity, FileText } from 'lucide-react';
+import { Brain, Activity, FileText, UserCheck } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -38,12 +38,12 @@ export default function LandingPage() {
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(6,214,160,0.15), rgba(139,92,246,0.15))',
-                  border: '1px solid rgba(6,214,160,0.2)',
-                  boxShadow: '0 0 30px rgba(6,214,160,0.1)',
+                  background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(21,128,61,0.15))',
+                  border: '1px solid rgba(34,197,94,0.25)',
+                  boxShadow: '0 0 30px rgba(34,197,94,0.15)',
                 }}
               >
-                <Brain size={32} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 8px rgba(6,214,160,0.5))' }} />
+                <Brain size={32} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 8px rgba(34,197,94,0.5))' }} />
               </div>
             </div>
             <h1>SNN-AI Cognitive Health & Learning Optimizer</h1>
@@ -67,35 +67,36 @@ export default function LandingPage() {
               Continue with Google
             </button>
 
-            <button className="btn-demo-login" onClick={handleGoogleLogin}>
-              🧪 Continue as Demo Doctor (No OAuth Required)
+            <button className="btn-demo-login flex items-center justify-center gap-2" onClick={handleGoogleLogin}>
+              <UserCheck size={18} />
+              Continue as Demo Doctor (No OAuth Required)
             </button>
 
             <p className="landing-note">
               Secure OAuth authentication. Your data is protected and encrypted.
               <br />
-              <small className="opacity-60">Demo mode available for testing without OAuth setup.</small>
+              <small className="opacity-75">Demo mode available for testing without OAuth setup.</small>
             </p>
           </div>
 
           <div className="landing-features stagger-children">
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <Activity size={28} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 6px rgba(6,214,160,0.4))' }} />
+                <Activity size={28} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 6px rgba(34,197,94,0.4))' }} />
               </div>
               <h3>Real-time Monitoring</h3>
               <p>Live cognitive state tracking and biometric visualization</p>
             </div>
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <FileText size={28} className="text-[var(--accent-violet)]" style={{ filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.4))' }} />
+                <FileText size={28} className="text-[var(--accent-violet)]" style={{ filter: 'drop-shadow(0 0 6px rgba(21,128,61,0.4))' }} />
               </div>
               <h3>EDF File Analysis</h3>
               <p>Upload and analyze patient EEG data with advanced algorithms</p>
             </div>
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <FileText size={28} className="text-[var(--accent-blue)]" style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.4))' }} />
+                <FileText size={28} className="text-[var(--accent-blue)]" style={{ filter: 'drop-shadow(0 0 6px rgba(5,150,105,0.4))' }} />
               </div>
               <h3>PDF Reports</h3>
               <p>Generate comprehensive analysis reports for patient records</p>

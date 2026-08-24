@@ -2,11 +2,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 import numpy as np
 
 from snn_ai_optimizer.snn.model import SNNHealthModel
 from snn_ai_optimizer.snn.preprocessing import load_mock_data, EEGPreprocessor
+
 
 def train_snn(save_path="snn_cognitive_health.pth"):
     print(f"Loading data... Saving to {save_path}")
