@@ -1,0 +1,68 @@
+/* ============================================
+   DESIGN TOKENS — 3D Glassmorphic Neuro Theme
+   ============================================ */
+
+:root {
+  /* ---- Backgrounds ---- */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #111827;
+  --bg-glass: rgba(17, 24, 39, 0.6);
+  --bg-glass-strong: rgba(17, 24, 39, 0.85);
+  --bg-card-hover: rgba(17, 24, 39, 0.75);
+
+  /* ---- Accent Colors ---- */
+  --accent-cyan: #06d6a0;
+  --accent-violet: #8b5cf6;
+  --accent-blue: #3b82f6;
+
+  /* ---- Semantic ---- */
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+
+  /* ---- Text ---- */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* ---- Glow ---- */
+  --glow-cyan: rgba(6, 214, 160, 0.4);
+  --glow-violet: rgba(139, 92, 246, 0.4);
+  --glow-blue: rgba(59, 130, 246, 0.35);
+
+  /* ---- Borders ---- */
+  --border-glass: rgba(148, 163, 184, 0.08);
+  --border-glow: rgba(6, 214, 160, 0.2);
+
+  /* ---- Radius ---- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* ---- Typography ---- */
+  --font-heading: 'Exo 2', 'Inter', system-ui, sans-serif;
+  --font-body: 'Open Sans', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ---- Shadows (3-layer depth) ---- */
+  --shadow-card: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 10px 20px rgba(0, 0, 0, 0.2),
+    0 0 40px rgba(6, 214, 160, 0.03);
+  --shadow-card-hover: 
+    0 8px 16px rgba(0, 0, 0, 0.4),
+    0 16px 32px rgba(0, 0, 0, 0.25),
+    0 0 60px rgba(6, 214, 160, 0.08);
+  --shadow-glow-cyan:
+    0 0 15px rgba(6, 214, 160, 0.25),
+    0 0 30px rgba(6, 214, 160, 0.1);
+  --shadow-glow-violet:
+    0 0 15px rgba(139, 92, 246, 0.25),
+    0 0 30px rgba(139, 92, 246, 0.1);
+
+  /* ---- Transitions ---- */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-3d: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}

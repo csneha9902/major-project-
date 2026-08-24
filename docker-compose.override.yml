@@ -1,0 +1,5 @@
+﻿services:
+  backend:
+    environment:
+      - EEG_SOURCE_URL=http://localhost:8000/mock/eeg
+      - EEG_SOURCE_TIMEOUT=3.0

@@ -1,0 +1,20 @@
+uvicorn[standard]
+fastapi
+click
+numpy
+pandas
+scikit-learn
+torch
+mne
+nibabel
+requests
+# Auth & OAuth
+python-jose[cryptography]
+python-multipart
+authlib
+# PDF Export
+reportlab
+Pillow
+spikingjelly
+matplotlib
+scipy
