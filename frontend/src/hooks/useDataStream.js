@@ -4,8 +4,8 @@ import { API_BASE } from "../api";
 function toWsUrl(httpUrl) {
   try {
     const u = new URL(httpUrl);
-    u.protocol = u.protocol === "https:" ? "wss:" : "ws:";
-    return u.origin + "/api/data";
+    const protocol = u.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${u.host}/api/data`;
   } catch {
     return "ws://localhost:8000/api/data";
   }

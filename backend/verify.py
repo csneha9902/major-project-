@@ -24,14 +24,14 @@ def verify():
     print("\nStep 2: Feedback Loop / Q-table Update Check...")
     update_q_table("Focused", 4, 1.0)
     q_table = _load_q_table()
-    if "Focused_4" in q_table:
-        print(f"✅ Q-table updated successfully: {q_table['Focused_4']}")
+    if "Focused" in q_table and "4" in q_table["Focused"]:
+        print(f"✅ Q-table updated successfully: {q_table['Focused']['4']}")
     else:
         print("❌ Q-table update failed!")
         sys.exit(1)
         
     print("\nStep 3: Quantum Eradication Check...")
-    result = subprocess.run(["grep", "-rn", "-i", "quantum\|qubo", "."], capture_output=True, text=True)
+    result = subprocess.run(["grep", "-rn", "-i", "-E", "quantum|qubo", "."], capture_output=True, text=True)
     out = result.stdout.strip()
     
     # Filter out verify.py itself from grep output
