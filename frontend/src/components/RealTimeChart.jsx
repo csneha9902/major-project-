@@ -26,19 +26,19 @@ const RealTimeChart = React.memo(function RealTimeChart({ frame, bufferRef, runn
   return (
     <div className="chart-card">
       <h3 className="flex items-center gap-2">
-        EEG/HRV (Live)
+        EEG / HRV (Live Stream)
         {running && <span className="live-dot ml-1" />}
       </h3>
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="rtAlpha" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
+              <stop offset="0%" stopColor="#059669" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="#059669" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="rtBeta" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
+              <stop offset="0%" stopColor="#16A34A" stopOpacity={0.25} />
+              <stop offset="100%" stopColor="#16A34A" stopOpacity={0} />
             </linearGradient>
             <filter id="rtGlow">
               <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -48,19 +48,19 @@ const RealTimeChart = React.memo(function RealTimeChart({ frame, bufferRef, runn
               </feMerge>
             </filter>
           </defs>
-          <CartesianGrid strokeDasharray="3 6" stroke="rgba(148,163,184,0.06)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 6" stroke="rgba(34,197,94,0.12)" vertical={false} />
           <XAxis
             dataKey="t"
             tickFormatter={(v) => new Date(v * 1000).toLocaleTimeString()}
             stroke="transparent"
-            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             domain={[0, 2]}
             stroke="transparent"
-            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
           />
@@ -72,9 +72,9 @@ const RealTimeChart = React.memo(function RealTimeChart({ frame, bufferRef, runn
           />
           <Area type="monotone" dataKey="alpha" fill="url(#rtAlpha)" stroke="none" />
           <Area type="monotone" dataKey="beta" fill="url(#rtBeta)" stroke="none" />
-          <Line type="monotone" dataKey="alpha" name="Alpha" stroke="#3b82f6" dot={false} strokeWidth={2.5} filter="url(#rtGlow)" />
-          <Line type="monotone" dataKey="beta" name="Beta" stroke="#ef4444" dot={false} strokeWidth={2.5} filter="url(#rtGlow)" />
-          <Line type="monotone" dataKey="lf_hf" name="LF/HF" stroke="#10b981" dot={false} strokeWidth={2} filter="url(#rtGlow)" />
+          <Line type="monotone" dataKey="alpha" name="Relaxation (Alpha)" stroke="#059669" dot={false} strokeWidth={2.5} filter="url(#rtGlow)" />
+          <Line type="monotone" dataKey="beta" name="Focus (Beta)" stroke="#16A34A" dot={false} strokeWidth={2.5} filter="url(#rtGlow)" />
+          <Line type="monotone" dataKey="lf_hf" name="LF/HF Ratio" stroke="#15803D" dot={false} strokeWidth={2} filter="url(#rtGlow)" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

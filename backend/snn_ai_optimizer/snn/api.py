@@ -1,11 +1,17 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
-import torch
 import os
 from typing import List
 
-from snn_ai_optimizer.snn.model import SNNHealthModel
-from snn_ai_optimizer.snn.train import train_snn
+try:
+    import torch
+    from snn_ai_optimizer.snn.model import SNNHealthModel
+    from snn_ai_optimizer.snn.train import train_snn
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+    SNNHealthModel = None
+    train_snn = None
 
 router = APIRouter(prefix="/api/snn", tags=["snn"])
 
@@ -23,6 +29,8 @@ class TrainResponse(BaseModel):
 @router.post("/train", response_model=TrainResponse)
 async def train_model(background_tasks: BackgroundTasks):
     """Triggers SNN model training in the background."""
+    if not HAS_TORCH or train_snn is None:
+        raise HTTPException(status_code=400, detail="PyTorch/SNN training modules are not available.")
     background_tasks.add_task(train_snn, save_path=MODEL_PATH)
     return {"message": "SNN training started in background.", "status": "started"}
 
@@ -36,8 +44,11 @@ async def model_status():
 @router.post("/predict")
 async def predict_cognitive_state(request: PredictRequest):
     """Predicts stress vs relaxed state using the SNN."""
+    if not HAS_TORCH or SNNHealthModel is None:
+        raise HTTPException(status_code=400, detail="PyTorch/SNN prediction modules are not available.")
     if not os.path.exists(MODEL_PATH):
         raise HTTPException(status_code=400, detail="Model is not trained yet. Call /api/snn/train first.")
+
     
     try:
         # Load Model
