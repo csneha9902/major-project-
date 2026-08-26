@@ -39,7 +39,8 @@ import {
   CalendarCheck,
   RefreshCw,
   Copy,
-  Check
+  Check,
+  Database
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -720,9 +721,332 @@ function EmbeddedAnalysisView({ uploadId, onBack }) {
   );
 }
 
+function AddPatientModal({ isOpen, onClose, onSavePatient }) {
+  const [formData, setFormData] = useState({
+    name: '',
+    age: '34',
+    gender: 'Female',
+    bloodType: 'A+',
+    attendingDoctor: 'Dr. Sarah Jenkins, MD (Neuropsychiatry)',
+    cognitiveState: 'Stressed',
+    snnRiskScore: 78,
+    betaAlphaRatio: '2.85 (High)',
+    heartRate: 88,
+    chiefComplaint: 'Acute cognitive fatigue and tension headaches during sustained mental focus.',
+    checkupProblemsText: 'High Beta wave hyperactivity (>25Hz)\nSuppressed parasympathetic tone\nCognitive stamina drops after 45 minutes',
+    diagnosis: 'Acute SNN Cognitive Stress & Beta Wave Spike',
+    doctorNotes: 'Elevated Beta power spike and high SNN spike frequency detected during high-intensity cognitive workload.',
+    icdCode: 'ICD-11: 6C40 / MB23.1',
+    treatmentPlan: 'Recommend 15-minute SNN biofeedback recovery breaks every 60 minutes.',
+    edfFile: 'patient_eeg_20260826.edf'
+  });
+
+  if (!isOpen) return null;
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) {
+      alert("Please enter patient name.");
+      return;
+    }
+
+    const checkupProblems = formData.checkupProblemsText
+      .split('\n')
+      .map(s => s.trim())
+      .filter(Boolean);
+
+    const todayStr = "2026-08-26";
+    const newPatient = {
+      id: `PAT-${Math.floor(10000 + Math.random() * 90000)}`,
+      name: formData.name,
+      age: parseInt(formData.age, 10) || 30,
+      gender: formData.gender,
+      bloodType: formData.bloodType,
+      attendingDoctor: formData.attendingDoctor,
+      cognitiveState: formData.cognitiveState,
+      snnRiskScore: parseInt(formData.snnRiskScore, 10) || 75,
+      betaAlphaRatio: formData.betaAlphaRatio,
+      heartRate: parseInt(formData.heartRate, 10) || 85,
+      sessionDate: todayStr,
+      sessionTime: "10:30 AM",
+      edfStatus: "Uploaded & Analyzed",
+      chiefComplaint: formData.chiefComplaint,
+      checkupProblems: checkupProblems.length > 0 ? checkupProblems : [
+        "High Beta wave hyperactivity during sustained attention tasks",
+        "Suppressed parasympathetic tone under mental pressure"
+      ],
+      diagnosis: formData.diagnosis,
+      doctorNotes: formData.doctorNotes,
+      icdCode: formData.icdCode,
+      treatmentPlan: formData.treatmentPlan,
+      recordedSessions: [
+        {
+          id: `SES-${Math.floor(800 + Math.random() * 199)}`,
+          date: todayStr,
+          time: "10:30 AM",
+          duration: "45 mins",
+          edfFile: formData.edfFile || `${formData.name.toLowerCase().replace(/\s+/g, '_')}_eeg.edf`,
+          snnScore: parseInt(formData.snnRiskScore, 10) || 75,
+          state: formData.cognitiveState,
+          notes: formData.doctorNotes
+        }
+      ],
+      graphData: [
+        { time: "00:00", alpha: 0.50, beta: 0.40, heartRate: 72, snnSpikes: 20 },
+        { time: "10:00", alpha: 0.45, beta: 0.75, heartRate: 80, snnSpikes: 50 },
+        { time: "20:00", alpha: 0.35, beta: 1.10, heartRate: parseInt(formData.heartRate, 10) || 88, snnSpikes: parseInt(formData.snnRiskScore, 10) || 78 },
+        { time: "30:00", alpha: 0.48, beta: 0.60, heartRate: 78, snnSpikes: 40 }
+      ],
+      waveSpectrum: [
+        { wave: "Delta (0.5-4Hz)", power: 14 },
+        { wave: "Theta (4-8Hz)", power: 19 },
+        { wave: "Alpha (8-12Hz)", power: 22 },
+        { wave: "Beta (13-30Hz)", power: parseInt(formData.snnRiskScore, 10) || 75 },
+        { wave: "Gamma (>30Hz)", power: 42 }
+      ]
+    };
+
+    onSavePatient(newPatient);
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl border-2 border-emerald-500/30 shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-fade-in my-8">
+        <div className="p-5 bg-gradient-to-r from-emerald-800 to-emerald-900 text-white flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-700/60 rounded-xl border border-emerald-500/40">
+              <Plus size={20} className="text-emerald-300" />
+            </div>
+            <div>
+              <h3 className="text-lg font-extrabold m-0 text-white tracking-tight">Register New Clinical Patient Record</h3>
+              <p className="text-xs text-emerald-200 m-0">Input patient demographics, EEG wave readings & psychiatric observations</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-emerald-200 hover:text-white p-1 rounded-lg hover:bg-emerald-700/50 transition-colors">
+            <X size={20} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 text-emerald-950 text-xs font-semibold">
+          {/* Section 1: Demographics */}
+          <div>
+            <span className="text-[0.7rem] font-extrabold uppercase tracking-wider text-emerald-800 block mb-3 pb-1 border-b border-emerald-100">
+              1. Patient Demographics & Doctor Info
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Patient Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Sarah Connor"
+                  value={formData.name}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-500/20 outline-none text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Age</label>
+                <input
+                  type="number"
+                  value={formData.age}
+                  onChange={e => setFormData({ ...formData, age: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Gender</label>
+                <select
+                  value={formData.gender}
+                  onChange={e => setFormData({ ...formData, gender: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold bg-white"
+                >
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Blood Type</label>
+                <input
+                  type="text"
+                  value={formData.bloodType}
+                  onChange={e => setFormData({ ...formData, bloodType: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block mb-1 font-bold text-emerald-900">Attending Psychiatrist / Doctor</label>
+                <input
+                  type="text"
+                  value={formData.attendingDoctor}
+                  onChange={e => setFormData({ ...formData, attendingDoctor: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 2: Biometrics & SNN Metrics */}
+          <div>
+            <span className="text-[0.7rem] font-extrabold uppercase tracking-wider text-emerald-800 block mb-3 pb-1 border-b border-emerald-100">
+              2. SNN Neural Risk & Biometric Signals
+            </span>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Cognitive State</label>
+                <select
+                  value={formData.cognitiveState}
+                  onChange={e => setFormData({ ...formData, cognitiveState: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold bg-white"
+                >
+                  <option value="Stressed">Stressed (High Risk)</option>
+                  <option value="Focused">Focused (Optimal)</option>
+                  <option value="Neutral">Neutral (Baseline)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">SNN Risk Score (0-100%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.snnRiskScore}
+                  onChange={e => setFormData({ ...formData, snnRiskScore: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Beta/Alpha Ratio</label>
+                <input
+                  type="text"
+                  value={formData.betaAlphaRatio}
+                  onChange={e => setFormData({ ...formData, betaAlphaRatio: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Heart Rate (BPM)</label>
+                <input
+                  type="number"
+                  value={formData.heartRate}
+                  onChange={e => setFormData({ ...formData, heartRate: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Clinical Symptoms & Diagnosis */}
+          <div>
+            <span className="text-[0.7rem] font-extrabold uppercase tracking-wider text-emerald-800 block mb-3 pb-1 border-b border-emerald-100">
+              3. Chief Complaints & Psychiatric Diagnosis
+            </span>
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Chief Complaint Submitted for Checkup</label>
+                <textarea
+                  rows={2}
+                  value={formData.chiefComplaint}
+                  onChange={e => setFormData({ ...formData, chiefComplaint: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-semibold resize-none"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Identified Clinical & Physiological Problems (One per line)</label>
+                <textarea
+                  rows={3}
+                  value={formData.checkupProblemsText}
+                  onChange={e => setFormData({ ...formData, checkupProblemsText: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-semibold resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-bold text-emerald-900">Diagnostic Classification (ICD Code)</label>
+                  <input
+                    type="text"
+                    value={formData.icdCode}
+                    onChange={e => setFormData({ ...formData, icdCode: e.target.value })}
+                    className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-bold text-emerald-900">Neurological Diagnostic Assessment</label>
+                  <input
+                    type="text"
+                    value={formData.diagnosis}
+                    onChange={e => setFormData({ ...formData, diagnosis: e.target.value })}
+                    className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-bold"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block mb-1 font-bold text-emerald-900">Recommended Treatment & Intervention Plan</label>
+                <textarea
+                  rows={2}
+                  value={formData.treatmentPlan}
+                  onChange={e => setFormData({ ...formData, treatmentPlan: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-emerald-300 focus:border-emerald-600 outline-none text-xs font-semibold resize-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-emerald-200 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl text-emerald-800 font-bold border border-emerald-300 hover:bg-emerald-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 rounded-xl text-white font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 shadow-md transition-all flex items-center gap-2"
+            >
+              <CheckCircle2 size={16} />
+              <span>Save & Register Patient</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function EmployerWorkspaceDashboard({ onLogout }) {
   const navigate = useNavigate();
-  const [patients, setPatients] = useState(INITIAL_PATIENTS);
+  
+  // Workspace Mode: 'demo' (shows synthetic 6 patients) vs 'live' (employer dynamic entered data)
+  const [workspaceMode, setWorkspaceMode] = useState(() => localStorage.getItem('snn_workspace_mode') || 'demo');
+  const [livePatients, setLivePatients] = useState(() => {
+    const saved = localStorage.getItem('snn_live_patients');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
+
+  // Sync state changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('snn_workspace_mode', workspaceMode);
+  }, [workspaceMode]);
+
+  useEffect(() => {
+    localStorage.setItem('snn_live_patients', JSON.stringify(livePatients));
+  }, [livePatients]);
+
+  // Derived patient list based on mode
+  const patients = workspaceMode === 'demo' ? INITIAL_PATIENTS : livePatients;
+
+  const handleSaveNewPatient = (newPatient) => {
+    const updated = [newPatient, ...livePatients];
+    setLivePatients(updated);
+    setWorkspaceMode('live');
+    setSelectedPatient(newPatient);
+    setActiveTab('patient-detail');
+  };
+
   const [activeTab, setActiveTab] = useState('patients'); // 'patients' | 'calendar' | 'patient-detail' | 'analysis'
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('ALL'); // 'ALL' | 'Stressed' | 'Focused' | 'Neutral'
@@ -827,6 +1151,14 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
 
           <div className="nav-section-title mt-6">QUICK ACTIONS</div>
           <button
+            className="nav-item border border-emerald-500/30 bg-emerald-800/10 text-emerald-300 font-bold hover:bg-emerald-700/30"
+            onClick={() => setIsAddPatientModalOpen(true)}
+          >
+            <Plus size={18} />
+            <span>+ Register Patient</span>
+          </button>
+
+          <button
             className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
             onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(null); }}
           >
@@ -880,14 +1212,51 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
             </p>
           </div>
 
-          <div className="topbar-actions">
+          <div className="topbar-actions flex items-center gap-2">
+            {/* Workspace Data Mode Switcher */}
+            <div className="flex items-center gap-1 bg-emerald-950/40 p-1 rounded-xl border border-emerald-500/30">
+              <button
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  workspaceMode === 'demo'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-emerald-800 hover:bg-emerald-100/50'
+                }`}
+                onClick={() => setWorkspaceMode('demo')}
+                title="View synthetic demo dataset with sample patients"
+              >
+                <Sparkles size={13} />
+                <span>Demo Mode ({INITIAL_PATIENTS.length})</span>
+              </button>
+              <button
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  workspaceMode === 'live'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'text-emerald-800 hover:bg-emerald-100/50'
+                }`}
+                onClick={() => setWorkspaceMode('live')}
+                title="View live employer saved patient dataset"
+              >
+                <Database size={13} />
+                <span>Live Workspace ({livePatients.length})</span>
+              </button>
+            </div>
+
+            {/* Register Patient Button */}
+            <button
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5"
+              onClick={() => setIsAddPatientModalOpen(true)}
+            >
+              <Plus size={15} />
+              <span>+ Register Patient</span>
+            </button>
+
             {activeTab === 'patient-detail' || activeTab === 'analysis' ? (
               <button
                 className="btn-back-directory"
                 onClick={() => { setActiveTab('patients'); setSelectedPatient(null); setSelectedAnalysisUploadId(null); }}
               >
                 <ArrowLeft size={16} />
-                <span>Back to Patients Directory</span>
+                <span>Back to Directory</span>
               </button>
             ) : (
               <button
@@ -910,134 +1279,164 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
         {/* TAB 1: PATIENTS DIRECTORY (LIST VIEW) */}
         {activeTab === 'patients' && (
           <div className="workspace-content animate-fade-in">
-            {/* Search & Filter Control Bar */}
-            <div className="controls-bar">
-              <div className="search-box">
-                <Search size={18} className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Search by patient name, ID, or diagnosis..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button className="clear-search" onClick={() => setSearchQuery('')}>
-                    <X size={14} />
+            {workspaceMode === 'live' && livePatients.length === 0 ? (
+              <div className="clinical-card p-10 text-center flex flex-col items-center justify-center my-6 border-2 border-dashed border-emerald-400/60 bg-emerald-50/60 rounded-2xl shadow-sm">
+                <div className="p-4 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 mb-4 shadow-inner">
+                  <Users size={36} />
+                </div>
+                <h3 className="text-xl font-extrabold text-emerald-950 mb-1 tracking-tight">Live Employer Workspace is Empty</h3>
+                <p className="text-xs text-emerald-800/80 max-w-md mb-6 leading-relaxed">
+                  No live patient records have been registered yet. Click below to enter your first clinical patient record with full EEG & biometric parameters, or switch to Demo Mode to explore pre-loaded sample datasets.
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="px-5 py-2.5 rounded-xl text-white font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 shadow-md transition-all flex items-center gap-2 text-xs"
+                    onClick={() => setIsAddPatientModalOpen(true)}
+                  >
+                    <Plus size={16} />
+                    <span>+ Register First Patient</span>
                   </button>
-                )}
+                  <button
+                    className="px-5 py-2.5 rounded-xl text-emerald-900 font-bold bg-white border border-emerald-300 hover:bg-emerald-50 transition-all text-xs flex items-center gap-1.5 shadow-sm"
+                    onClick={() => setWorkspaceMode('demo')}
+                  >
+                    <Sparkles size={14} className="text-emerald-600" />
+                    <span>Switch to Demo Mode</span>
+                  </button>
+                </div>
               </div>
+            ) : (
+              <>
+                {/* Search & Filter Control Bar */}
+                <div className="controls-bar">
+                  <div className="search-box">
+                    <Search size={18} className="search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Search by patient name, ID, or diagnosis..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button className="clear-search" onClick={() => setSearchQuery('')}>
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
 
-              <div className="filter-pills">
-                <button
-                  className={`filter-pill ${filterState === 'ALL' ? 'active' : ''}`}
-                  onClick={() => setFilterState('ALL')}
-                >
-                  All Patients ({patients.length})
-                </button>
-                <button
-                  className={`filter-pill stressed ${filterState === 'Stressed' ? 'active' : ''}`}
-                  onClick={() => setFilterState('Stressed')}
-                >
-                  Stressed (High Risk)
-                </button>
-                <button
-                  className={`filter-pill focused ${filterState === 'Focused' ? 'active' : ''}`}
-                  onClick={() => setFilterState('Focused')}
-                >
-                  Focused
-                </button>
-                <button
-                  className={`filter-pill neutral ${filterState === 'Neutral' ? 'active' : ''}`}
-                  onClick={() => setFilterState('Neutral')}
-                >
-                  Neutral / Rest
-                </button>
-              </div>
-            </div>
+                  <div className="filter-pills">
+                    <button
+                      className={`filter-pill ${filterState === 'ALL' ? 'active' : ''}`}
+                      onClick={() => setFilterState('ALL')}
+                    >
+                      All Patients ({patients.length})
+                    </button>
+                    <button
+                      className={`filter-pill stressed ${filterState === 'Stressed' ? 'active' : ''}`}
+                      onClick={() => setFilterState('Stressed')}
+                    >
+                      Stressed (High Risk)
+                    </button>
+                    <button
+                      className={`filter-pill focused ${filterState === 'Focused' ? 'active' : ''}`}
+                      onClick={() => setFilterState('Focused')}
+                    >
+                      Focused
+                    </button>
+                    <button
+                      className={`filter-pill neutral ${filterState === 'Neutral' ? 'active' : ''}`}
+                      onClick={() => setFilterState('Neutral')}
+                    >
+                      Neutral / Rest
+                    </button>
+                  </div>
+                </div>
 
-            {/* Patients List Table Card */}
-            <div className="table-card">
-              <table className="patients-table">
-                <thead>
-                  <tr>
-                    <th>Patient Info</th>
-                    <th>Cognitive State</th>
-                    <th>SNN Risk Score</th>
-                    <th>EEG Metrics</th>
-                    <th>Session Date & Time</th>
-                    <th>EDF Status</th>
-                    <th className="text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredPatients.length > 0 ? (
-                    filteredPatients.map(p => (
-                      <tr key={p.id} className="patient-row">
-                        <td>
-                          <div className="patient-name-block">
-                            <span className="patient-name">{p.name}</span>
-                            <span className="patient-meta">{p.id} • {p.age} yrs • {p.gender}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${p.cognitiveState.toLowerCase()}`}>
-                            {p.cognitiveState === 'Stressed' && <AlertTriangle size={12} />}
-                            {p.cognitiveState === 'Focused' && <CheckCircle2 size={12} />}
-                            {p.cognitiveState}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="risk-score-wrapper">
-                            <div className="risk-bar-container">
-                              <div
-                                className={`risk-bar ${p.snnRiskScore > 70 ? 'high' : p.snnRiskScore > 40 ? 'med' : 'low'}`}
-                                style={{ width: `${p.snnRiskScore}%` }}
-                              />
-                            </div>
-                            <span className="risk-value">{p.snnRiskScore}% SNN Spike</span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="metrics-cell">
-                            <span className="metric-tag">Beta/Alpha: <strong>{p.betaAlphaRatio}</strong></span>
-                            <span className="metric-tag">HR: <strong>{p.heartRate} BPM</strong></span>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="time-cell">
-                            <Clock size={13} className="text-emerald-500" />
-                            <span>{p.sessionDate} at {p.sessionTime}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="edf-badge">
-                            {p.edfStatus}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="actions-cell">
-                            <button
-                              className="btn-action-view"
-                              onClick={() => handleOpenPatientDetail(p)}
-                              title="Open Full Clinical Patient Details Window"
-                            >
-                              <Eye size={15} />
-                              <span>Details</span>
-                            </button>
-                          </div>
-                        </td>
+                {/* Patients List Table Card */}
+                <div className="table-card">
+                  <table className="patients-table">
+                    <thead>
+                      <tr>
+                        <th>Patient Info</th>
+                        <th>Cognitive State</th>
+                        <th>SNN Risk Score</th>
+                        <th>EEG Metrics</th>
+                        <th>Session Date & Time</th>
+                        <th>EDF Status</th>
+                        <th className="text-right">Actions</th>
                       </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="7" className="no-data-cell">
-                        No patient records found matching your query.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                    </thead>
+                    <tbody>
+                      {filteredPatients.length > 0 ? (
+                        filteredPatients.map(p => (
+                          <tr key={p.id} className="patient-row">
+                            <td>
+                              <div className="patient-name-block">
+                                <span className="patient-name">{p.name}</span>
+                                <span className="patient-meta">{p.id} • {p.age} yrs • {p.gender}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`status-badge ${p.cognitiveState.toLowerCase()}`}>
+                                {p.cognitiveState === 'Stressed' && <AlertTriangle size={12} />}
+                                {p.cognitiveState === 'Focused' && <CheckCircle2 size={12} />}
+                                {p.cognitiveState}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="risk-score-wrapper">
+                                <div className="risk-bar-container">
+                                  <div
+                                    className={`risk-bar ${p.snnRiskScore > 70 ? 'high' : p.snnRiskScore > 40 ? 'med' : 'low'}`}
+                                    style={{ width: `${p.snnRiskScore}%` }}
+                                  />
+                                </div>
+                                <span className="risk-value">{p.snnRiskScore}% SNN Spike</span>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="metrics-cell">
+                                <span className="metric-tag">Beta/Alpha: <strong>{p.betaAlphaRatio}</strong></span>
+                                <span className="metric-tag">HR: <strong>{p.heartRate} BPM</strong></span>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="time-cell">
+                                <Clock size={13} className="text-emerald-500" />
+                                <span>{p.sessionDate} at {p.sessionTime}</span>
+                              </div>
+                            </td>
+                            <td>
+                              <span className="edf-badge">
+                                {p.edfStatus}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="actions-cell">
+                                <button
+                                  className="btn-action-view"
+                                  onClick={() => handleOpenPatientDetail(p)}
+                                  title="Open Full Clinical Patient Details Window"
+                                >
+                                  <Eye size={15} />
+                                  <span>Details</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="7" className="no-data-cell">
+                            No patient records found matching your query.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1524,6 +1923,13 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
             )}
           </div>
         )}
+
+        {/* Modal for Registering New Clinical Patient Record */}
+        <AddPatientModal
+          isOpen={isAddPatientModalOpen}
+          onClose={() => setIsAddPatientModalOpen(false)}
+          onSavePatient={handleSaveNewPatient}
+        />
       </main>
     </div>
   );
