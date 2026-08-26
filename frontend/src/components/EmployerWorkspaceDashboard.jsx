@@ -1212,15 +1212,17 @@ export default function EmployerWorkspaceDashboard({ onLogout, isDemo = false })
               </span>
             )}
 
-            {/* Register Patient Button in Right Navigation Header */}
-            <button
-              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5 border border-emerald-500/40"
-              onClick={() => setIsAddPatientModalOpen(true)}
-              title="Register New Clinical Patient Record"
-            >
-              <Plus size={16} />
-              <span>Register Patient</span>
-            </button>
+            {/* Register Patient Button (Available in Live Working Space only) */}
+            {!isDemo && (
+              <button
+                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5 border border-emerald-500/40"
+                onClick={() => setIsAddPatientModalOpen(true)}
+                title="Register New Clinical Patient Record"
+              >
+                <Plus size={16} />
+                <span>Register Patient</span>
+              </button>
+            )}
 
             {activeTab === 'patient-detail' || activeTab === 'analysis' ? (
               <button
@@ -1889,12 +1891,14 @@ export default function EmployerWorkspaceDashboard({ onLogout, isDemo = false })
           </div>
         )}
 
-        {/* Modal for Registering New Clinical Patient Record */}
-        <AddPatientModal
-          isOpen={isAddPatientModalOpen}
-          onClose={() => setIsAddPatientModalOpen(false)}
-          onSavePatient={handleSaveNewPatient}
-        />
+        {/* Modal for Registering New Clinical Patient Record (Live Working Space Only) */}
+        {!isDemo && (
+          <AddPatientModal
+            isOpen={isAddPatientModalOpen}
+            onClose={() => setIsAddPatientModalOpen(false)}
+            onSavePatient={handleSaveNewPatient}
+          />
+        )}
       </main>
     </div>
   );
