@@ -4,7 +4,7 @@ import { Brain, ArrowRight, Activity, ShieldCheck, Zap, HeartPulse, CheckCircle2
 export default function TaskRecommendationCard({ recommendation }) {
   const taskTitle = recommendation?.task || 'Practice Easy Problems';
   const situation = recommendation?.situation || (
-    'High Beta wave elevation with suppressed Alpha waves and an elevated heart rate (98 BPM). Your neural signals indicate acute cognitive stress typical during intensive exam prep crunching.'
+    'High Beta wave elevation with suppressed Alpha waves and an elevated heart rate (98 BPM). Your neural signals indicate acute cognitive stress detected during high-load SNN cognitive monitoring.'
   );
   const reasoning = recommendation?.reasoning || (
     'Excessive cognitive strain reduces working memory capacity and accelerates burnout. Lowering task difficulty and initiating brief relaxation intervals protects cognitive health.'

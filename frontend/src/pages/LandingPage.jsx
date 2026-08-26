@@ -1,11 +1,15 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Activity, FileText, UserCheck } from 'lucide-react';
+import { Brain, Activity, FileText, UserCheck, Building2, User, Mail, Lock, LogIn } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('employer'); // 'employer' | 'user'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -21,6 +25,15 @@ export default function LandingPage() {
       console.error('Login error:', error);
       alert('Login failed. Please try again.');
     }
+  };
+
+  const handleCredentialsSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    // Proceed with authentication demo flow
+    setTimeout(() => {
+      window.location.href = `${API_BASE}/auth/login`;
+    }, 300);
   };
 
   return (
@@ -47,16 +60,98 @@ export default function LandingPage() {
               </div>
             </div>
             <h1>SNN-AI Cognitive Health & Learning Optimizer</h1>
-            <p className="landing-subtitle">Professional Portal for Healthcare Providers</p>
+            <p className="landing-subtitle">
+              {activeTab === 'employer' ? 'Professional Portal for Healthcare Providers & Employers' : 'Personal Portal for Patients & Learners'}
+            </p>
           </div>
 
           <div className="landing-card">
-            <h2>Doctor Login</h2>
-            <p className="landing-description">
-              Access advanced cognitive health analysis tools, upload patient EDF files,
-              and generate comprehensive reports with AI-powered insights.
-            </p>
+            {/* Tab Switcher Bar right above the login window */}
+            <div className="login-tab-switcher">
+              <button
+                type="button"
+                className={`login-tab-btn ${activeTab === 'employer' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('employer'); setEmail(''); setPassword(''); }}
+              >
+                <Building2 size={18} />
+                <span>Employer Login</span>
+              </button>
+              <button
+                type="button"
+                className={`login-tab-btn ${activeTab === 'user' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('user'); setEmail(''); setPassword(''); }}
+              >
+                <User size={18} />
+                <span>User Login</span>
+              </button>
+            </div>
 
+            {/* Tab Content Header */}
+            {activeTab === 'employer' ? (
+              <>
+                <h2>Employer / Healthcare Login</h2>
+                <p className="landing-description">
+                  Access clinical cognitive analysis tools, upload patient EDF files,
+                  and generate comprehensive diagnostic reports with AI-powered insights.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2>User / Patient Login</h2>
+                <p className="landing-description">
+                  Access your personal cognitive wellness dashboard, view daily biometric stress trends,
+                  and receive AI-guided workload & recovery recommendations.
+                </p>
+              </>
+            )}
+
+            {/* Fillable Credentials Form */}
+            <form className="credentials-form" onSubmit={handleCredentialsSubmit}>
+              <div className="form-group">
+                <label className="form-label">
+                  <Mail size={15} />
+                  <span>{activeTab === 'employer' ? 'Work Email / Hospital ID' : 'User Email / Student ID'}</span>
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    className="credentials-input"
+                    placeholder={activeTab === 'employer' ? 'doctor@hospital.org or EMP-88401' : 'user@domain.com or STU-10248'}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Lock size={15} />
+                  <span>Password</span>
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="password"
+                    className="credentials-input"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="btn-credentials-submit" disabled={loading}>
+                <LogIn size={18} />
+                <span>{loading ? 'Authenticating...' : (activeTab === 'employer' ? 'Sign In as Employer' : 'Sign In as User')}</span>
+              </button>
+            </form>
+
+            <div className="divider">
+              <span>OR CONTINUE WITH</span>
+            </div>
+
+            {/* OAuth and Demo Login Options */}
             <button className="btn-google-login" onClick={handleGoogleLogin}>
               <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -69,11 +164,11 @@ export default function LandingPage() {
 
             <button className="btn-demo-login flex items-center justify-center gap-2" onClick={handleGoogleLogin}>
               <UserCheck size={18} />
-              Continue as Demo Doctor (No OAuth Required)
+              {activeTab === 'employer' ? 'Continue as Demo Employer (No OAuth)' : 'Continue as Demo User (No OAuth)'}
             </button>
 
             <p className="landing-note">
-              Secure OAuth authentication. Your data is protected and encrypted.
+              Secure authentication. Your data is protected and encrypted.
               <br />
               <small className="opacity-75">Demo mode available for testing without OAuth setup.</small>
             </p>

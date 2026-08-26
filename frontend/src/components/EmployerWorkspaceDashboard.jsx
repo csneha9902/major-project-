@@ -1,0 +1,1095 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Users,
+  Calendar as CalendarIcon,
+  Activity,
+  FileText,
+  Search,
+  Filter,
+  Plus,
+  ArrowUpRight,
+  Clock,
+  Heart,
+  Brain,
+  ChevronRight,
+  LogOut,
+  ChevronLeft,
+  ChevronRight as ChevronRightIcon,
+  Lock,
+  Download,
+  Building2,
+  CheckCircle2,
+  AlertTriangle,
+  Stethoscope,
+  X,
+  Eye,
+  ArrowLeft,
+  User,
+  ShieldCheck,
+  AlertCircle,
+  FileCheck,
+  TrendingUp,
+  Layers,
+  Sparkles
+} from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Legend
+} from 'recharts';
+
+// Helper to format date YYYY-MM-DD
+const formatDateKey = (d) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Initial Clinical Patients Directory Data with rich Psychiatric details
+const INITIAL_PATIENTS = [
+  {
+    id: "PAT-10492",
+    name: "Eleanor Vance",
+    age: 34,
+    gender: "Female",
+    bloodType: "A+",
+    attendingDoctor: "Dr. Sarah Jenkins, MD (Neuropsychiatry)",
+    cognitiveState: "Stressed",
+    snnRiskScore: 84,
+    betaAlphaRatio: "3.11 (Elevated)",
+    heartRate: 98,
+    sessionDate: "2026-08-26",
+    sessionTime: "09:30 AM",
+    edfStatus: "Uploaded & Analyzed",
+    chiefComplaint: "Acute cognitive fatigue, persistent tension headaches during sustained mental focus, and hyper-arousal insomnia.",
+    checkupProblems: [
+      "High Beta wave hyperactivity (>28Hz) indicating continuous neural stress overload",
+      "Suppressed parasympathetic tone with HRV LF/HF ratio of 3.45",
+      "Cognitive stamina drops sharply after 45 minutes of continuous task engagement",
+      "Subjective difficulty with memory recall and emotional regulation under pressure"
+    ],
+    diagnosis: "Acute SNN Cognitive Stress & Beta Wave Spike",
+    doctorNotes: "Elevated Beta power spike (3.11 ratio) and high SNN spike frequency detected during high-intensity cognitive workload.",
+    icdCode: "ICD-11: 6C40 / MB23.1 (Cognitive Overload & Neural Hyper-reactivity)",
+    treatmentPlan: "Recommend immediate 15-minute SNN biofeedback recovery breaks every 90 minutes. Initiate targeted neuro-relaxation protocol and temporary reduction in high-complexity task assignments.",
+    recordedSessions: [
+      { id: "SES-901", date: "2026-08-26", time: "09:30 AM", duration: "45 mins", edfFile: "eleanor_vance_eeg_20260826.edf", snnScore: 84, state: "Stressed", notes: "Acute Beta wave elevation observed during high-load diagnostic task." },
+      { id: "SES-882", date: "2026-08-24", time: "02:15 PM", duration: "60 mins", edfFile: "eleanor_vance_eeg_20260824.edf", snnScore: 78, state: "Stressed", notes: "Sustained high beta activity with cardiac HRV suppression." },
+      { id: "SES-840", date: "2026-08-20", time: "11:00 AM", duration: "50 mins", edfFile: "eleanor_vance_eeg_20260820.edf", snnScore: 62, state: "Neutral", notes: "Moderate baseline recovery after guided breathing exercise." }
+    ],
+    graphData: [
+      { time: "00:00", alpha: 0.52, beta: 0.45, heartRate: 74, snnSpikes: 22 },
+      { time: "05:00", alpha: 0.48, beta: 0.58, heartRate: 78, snnSpikes: 35 },
+      { time: "10:00", alpha: 0.42, beta: 0.82, heartRate: 85, snnSpikes: 58 },
+      { time: "15:00", alpha: 0.36, beta: 1.12, heartRate: 98, snnSpikes: 84 },
+      { time: "20:00", alpha: 0.38, beta: 1.05, heartRate: 94, snnSpikes: 79 },
+      { time: "25:00", alpha: 0.44, beta: 0.88, heartRate: 88, snnSpikes: 64 },
+      { time: "30:00", alpha: 0.50, beta: 0.65, heartRate: 80, snnSpikes: 42 }
+    ],
+    waveSpectrum: [
+      { wave: "Delta (0.5-4Hz)", power: 12 },
+      { wave: "Theta (4-8Hz)", power: 18 },
+      { wave: "Alpha (8-12Hz)", power: 24 },
+      { wave: "Beta (13-30Hz)", power: 78 },
+      { wave: "Gamma (>30Hz)", power: 45 }
+    ]
+  },
+  {
+    id: "PAT-10493",
+    name: "James Wilson",
+    age: 42,
+    gender: "Male",
+    bloodType: "O+",
+    attendingDoctor: "Dr. Marcus Vance, MD (Clinical Neurology)",
+    cognitiveState: "Focused",
+    snnRiskScore: 22,
+    betaAlphaRatio: "1.08 (Optimal)",
+    heartRate: 72,
+    sessionDate: "2026-08-26",
+    sessionTime: "11:00 AM",
+    edfStatus: "Report Ready",
+    chiefComplaint: "Routine neuro-performance evaluation post-recovery; reports high mental clarity and calm mood.",
+    checkupProblems: [
+      "Optimal 10Hz Alpha peak wave synchronization across parietal sensors",
+      "Balanced autonomic nervous system regulation (HRV LF/HF: 1.12)",
+      "Low SNN neural spike noise floor (22% risk level)",
+      "Sustained working memory endurance beyond 2 hours"
+    ],
+    diagnosis: "Optimal Alpha Synchronization & Deep Focus",
+    doctorNotes: "Dominant 10Hz Alpha peak with low SNN stress index (22%); steady cardiac metrics during EEG assessment.",
+    icdCode: "ICD-11: Z01.89 (Routine Neurological & Cognitive Evaluation)",
+    treatmentPlan: "Maintain current workload and neuro-hygiene routine. Schedule follow-up routine EEG checkup in 6 months.",
+    recordedSessions: [
+      { id: "SES-902", date: "2026-08-26", time: "11:00 AM", duration: "60 mins", edfFile: "james_wilson_eeg_20260826.edf", snnScore: 22, state: "Focused", notes: "Optimal deep focus state verified by SNN model." },
+      { id: "SES-875", date: "2026-08-21", time: "10:30 AM", duration: "55 mins", edfFile: "james_wilson_eeg_20260821.edf", snnScore: 28, state: "Focused", notes: "High alpha power continuity during task evaluation." }
+    ],
+    graphData: [
+      { time: "00:00", alpha: 0.75, beta: 0.40, heartRate: 68, snnSpikes: 18 },
+      { time: "05:00", alpha: 0.82, beta: 0.42, heartRate: 70, snnSpikes: 20 },
+      { time: "10:00", alpha: 0.88, beta: 0.44, heartRate: 72, snnSpikes: 22 },
+      { time: "15:00", alpha: 0.85, beta: 0.41, heartRate: 71, snnSpikes: 21 },
+      { time: "20:00", alpha: 0.80, beta: 0.39, heartRate: 69, snnSpikes: 19 }
+    ],
+    waveSpectrum: [
+      { wave: "Delta (0.5-4Hz)", power: 15 },
+      { wave: "Theta (4-8Hz)", power: 22 },
+      { wave: "Alpha (8-12Hz)", power: 85 },
+      { wave: "Beta (13-30Hz)", power: 32 },
+      { wave: "Gamma (>30Hz)", power: 14 }
+    ]
+  },
+  {
+    id: "PAT-10494",
+    name: "Sophia Martinez",
+    age: 29,
+    gender: "Female",
+    bloodType: "B+",
+    attendingDoctor: "Dr. Sarah Jenkins, MD (Neuropsychiatry)",
+    cognitiveState: "Stressed",
+    snnRiskScore: 78,
+    betaAlphaRatio: "2.85 (High)",
+    heartRate: 94,
+    sessionDate: "2026-08-26",
+    sessionTime: "02:15 PM",
+    edfStatus: "Processing SNN",
+    chiefComplaint: "High mental exhaustion during shift work, anxiety spikes under tight deadlines, and focus drops.",
+    checkupProblems: [
+      "Persistent Beta desynchronization (2.85 ratio) with elevated SNN spike rate (78%)",
+      "Cardiac pulse elevation up to 94 BPM during complex decision tasks",
+      "Cognitive overload warning triggered after 30 minutes of continuous monitoring"
+    ],
+    diagnosis: "Neural Fatigue & High Beta Load Spike",
+    doctorNotes: "Persistent Beta desynchronization (2.85 ratio) with elevated SNN spike rate (78%); recommended 15-min mindfulness recovery break.",
+    icdCode: "ICD-11: QD85 (Cognitive Exhaustion & Autonomic Dysregulation)",
+    treatmentPlan: "Implement structured 15-minute relaxation breaks during shift work. Re-evaluate SNN stress score in 2 weeks.",
+    recordedSessions: [
+      { id: "SES-903", date: "2026-08-26", time: "02:15 PM", duration: "40 mins", edfFile: "sophia_m_eeg_20260826.edf", snnScore: 78, state: "Stressed", notes: "High beta load spike recorded during cognitive task battery." }
+    ],
+    graphData: [
+      { time: "00:00", alpha: 0.45, beta: 0.60, heartRate: 82, snnSpikes: 45 },
+      { time: "10:00", alpha: 0.38, beta: 0.95, heartRate: 90, snnSpikes: 70 },
+      { time: "20:00", alpha: 0.35, beta: 1.05, heartRate: 94, snnSpikes: 78 }
+    ],
+    waveSpectrum: [
+      { wave: "Delta (0.5-4Hz)", power: 10 },
+      { wave: "Theta (4-8Hz)", power: 16 },
+      { wave: "Alpha (8-12Hz)", power: 28 },
+      { wave: "Beta (13-30Hz)", power: 72 },
+      { wave: "Gamma (>30Hz)", power: 38 }
+    ]
+  },
+  {
+    id: "PAT-10495",
+    name: "Marcus Brody",
+    age: 51,
+    gender: "Male",
+    bloodType: "AB+",
+    attendingDoctor: "Dr. Elena Rostova, MD (Clinical Neurophysiology)",
+    cognitiveState: "Neutral",
+    snnRiskScore: 40,
+    betaAlphaRatio: "1.42 (Normal)",
+    heartRate: 68,
+    sessionDate: "2026-08-25",
+    sessionTime: "04:30 PM",
+    edfStatus: "Report Ready",
+    chiefComplaint: "Post-concussion baseline neural recovery assessment and sleep quality monitoring.",
+    checkupProblems: [
+      "Subtle Theta band elevation (4-7 Hz) during resting state",
+      "Normal baseline SNN stress score (40%) post-recovery protocol",
+      "Occasional transient fatigue during prolonged reading"
+    ],
+    diagnosis: "Baseline Resting State & Recovery Protocol",
+    doctorNotes: "Normal baseline EEG rhythm; SNN stress score at 40% post-recovery protocol.",
+    icdCode: "ICD-11: S06.0 / Z09 (Post-Concussion Baseline Monitoring)",
+    treatmentPlan: "Continue light cognitive pacing exercises. Gradually increase reading and task duration.",
+    recordedSessions: [
+      { id: "SES-890", date: "2026-08-25", time: "04:30 PM", duration: "50 mins", edfFile: "marcus_brody_eeg_20260825.edf", snnScore: 40, state: "Neutral", notes: "Stable baseline EEG recording during rest phase." }
+    ],
+    graphData: [
+      { time: "00:00", alpha: 0.60, beta: 0.50, heartRate: 65, snnSpikes: 32 },
+      { time: "15:00", alpha: 0.62, beta: 0.52, heartRate: 68, snnSpikes: 40 }
+    ],
+    waveSpectrum: [
+      { wave: "Delta (0.5-4Hz)", power: 20 },
+      { wave: "Theta (4-8Hz)", power: 35 },
+      { wave: "Alpha (8-12Hz)", power: 55 },
+      { wave: "Beta (13-30Hz)", power: 40 },
+      { wave: "Gamma (>30Hz)", power: 15 }
+    ]
+  },
+  {
+    id: "PAT-10496",
+    name: "Dr. Amanda Chen",
+    age: 38,
+    gender: "Female",
+    bloodType: "O-",
+    attendingDoctor: "Dr. Marcus Vance, MD (Clinical Neurology)",
+    cognitiveState: "Focused",
+    snnRiskScore: 18,
+    betaAlphaRatio: "0.95 (Deep Focus)",
+    heartRate: 70,
+    sessionDate: "2026-08-25",
+    sessionTime: "10:15 AM",
+    edfStatus: "Uploaded & Analyzed",
+    chiefComplaint: "Cognitive endurance evaluation during long surgical procedures and high-concentration tasks.",
+    checkupProblems: [
+      "High sustained attention endurance with optimal Alpha/Beta ratio (0.95)",
+      "Minimal SNN artifact interference during extended 2-hour monitoring block",
+      "Consistent 70 BPM cardiac rate under high task complexity"
+    ],
+    diagnosis: "High Sustained Attention & Low Neural Noise",
+    doctorNotes: "Optimal Alpha/Beta ratio (0.95) with minimal SNN artifact interference during extended monitoring.",
+    icdCode: "ICD-11: Z01.89 (High-Performance Cognitive Baseline)",
+    treatmentPlan: "No clinical intervention needed. Optimal cognitive state maintained.",
+    recordedSessions: [
+      { id: "SES-885", date: "2026-08-25", time: "10:15 AM", duration: "120 mins", edfFile: "amanda_chen_eeg_20260825.edf", snnScore: 18, state: "Focused", notes: "Exceptional cognitive endurance and stable neural metrics." }
+    ],
+    graphData: [
+      { time: "00:00", alpha: 0.88, beta: 0.35, heartRate: 68, snnSpikes: 15 },
+      { time: "30:00", alpha: 0.90, beta: 0.36, heartRate: 70, snnSpikes: 18 }
+    ],
+    waveSpectrum: [
+      { wave: "Delta (0.5-4Hz)", power: 10 },
+      { wave: "Theta (4-8Hz)", power: 15 },
+      { wave: "Alpha (8-12Hz)", power: 90 },
+      { wave: "Beta (13-30Hz)", power: 25 },
+      { wave: "Gamma (>30Hz)", power: 12 }
+    ]
+  },
+  {
+    id: "PAT-10497",
+    name: "Robert Taylor",
+    age: 46,
+    gender: "Male",
+    bloodType: "A-",
+    attendingDoctor: "Dr. Sarah Jenkins, MD (Neuropsychiatry)",
+    cognitiveState: "Stressed",
+    snnRiskScore: 88,
+    betaAlphaRatio: "3.45 (Critical)",
+    heartRate: 104,
+    sessionDate: "2026-08-24",
+    sessionTime: "01:00 PM",
+    edfStatus: "Uploaded & Analyzed",
+    chiefComplaint: "Severe panic-induced neural exhaustion, rapid pulse spikes, and cognitive disorientation under high stress.",
+    checkupProblems: [
+      "Critical Beta/Alpha ratio elevation (3.45) with 88% SNN risk spike",
+      "Heart rate variability suppression with pulse reaching 104 BPM",
+      "Acute sympathetic overdrive requiring immediate clinical intervention"
+    ],
+    diagnosis: "Acute Neural Exhaustion & High SNN Risk Spike",
+    doctorNotes: "Heart rate variability dropped sharply (104 BPM); critical Beta/Alpha elevation and high SNN stress spike (88%) detected.",
+    icdCode: "ICD-11: 6B40 (Acute Stress & Autonomic Overdrive Response)",
+    treatmentPlan: "Immediate cessation of high-stress duty. Prescribed targeted biofeedback session and 48-hour clinical rest protocol.",
+    recordedSessions: [
+      { id: "SES-870", date: "2026-08-24", time: "01:00 PM", duration: "35 mins", edfFile: "robert_taylor_eeg_20260824.edf", snnScore: 88, state: "Stressed", notes: "Critical SNN spike alert triggered. High sympathetic drive." }
+    ],
+    graphData: [
+      { time: "00:00", alpha: 0.35, beta: 0.85, heartRate: 90, snnSpikes: 65 },
+      { time: "15:00", alpha: 0.28, beta: 1.25, heartRate: 104, snnSpikes: 88 }
+    ],
+    waveSpectrum: [
+      { wave: "Delta (0.5-4Hz)", power: 8 },
+      { wave: "Theta (4-8Hz)", power: 12 },
+      { wave: "Alpha (8-12Hz)", power: 18 },
+      { wave: "Beta (13-30Hz)", power: 88 },
+      { wave: "Gamma (>30Hz)", power: 52 }
+    ]
+  }
+];
+
+export default function EmployerWorkspaceDashboard({ onLogout }) {
+  const navigate = useNavigate();
+  const [patients, setPatients] = useState(INITIAL_PATIENTS);
+  const [activeTab, setActiveTab] = useState('patients'); // 'patients' | 'calendar' | 'patient-detail'
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterState, setFilterState] = useState('ALL'); // 'ALL' | 'Stressed' | 'Focused' | 'Neutral'
+  const [selectedPatient, setSelectedPatient] = useState(null);
+
+  // Calendar State
+  const [todayDate] = useState(() => new Date(2026, 7, 26)); // Fixed anchor date Aug 26, 2026
+  const [currentMonthDate, setCurrentMonthDate] = useState(() => new Date(2026, 7, 1));
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(() => new Date(2026, 7, 26));
+
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDayOfWeek = new Date(year, month, 1).getDay();
+
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Filter patients list based on search and state pill
+  const filteredPatients = patients.filter(p => {
+    const matchesSearch =
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.diagnosis.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesFilter = filterState === 'ALL' || p.cognitiveState === filterState;
+
+    return matchesSearch && matchesFilter;
+  });
+
+  // Get patients list scheduled for selected calendar date
+  const selectedDateKey = formatDateKey(selectedCalendarDate);
+  const patientsForSelectedDate = patients.filter(p => p.sessionDate === selectedDateKey);
+
+  const isFutureDate = selectedCalendarDate > todayDate;
+
+  // Open detailed psychiatric window for a patient
+  const handleOpenPatientDetail = (patient) => {
+    setSelectedPatient(patient);
+    setActiveTab('patient-detail');
+  };
+
+  return (
+    <div className="employer-workspace-container">
+      {/* 1. Left Sidebar Navigation (ClickUp inspired clinical workspace) */}
+      <aside className="workspace-sidebar">
+        <div className="sidebar-brand">
+          <div className="brand-logo shadow-sm">
+            <Building2 size={22} className="text-emerald-400" />
+          </div>
+          <div className="brand-text">
+            <h4>St. Jude Health</h4>
+            <span className="badge-clinical">Clinical Workspace</span>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          <div className="nav-section-title">MAIN NAVIGATION</div>
+          <button
+            className={`nav-item ${activeTab === 'patients' || activeTab === 'patient-detail' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('patients'); setSelectedPatient(null); }}
+          >
+            <Users size={18} />
+            <span>Patients Directory</span>
+            <span className="badge-count">{patients.length}</span>
+          </button>
+
+          <button
+            className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calendar')}
+          >
+            <CalendarIcon size={18} />
+            <span>Calendar Schedule</span>
+            {patientsForSelectedDate.length > 0 && (
+              <span className="badge-dot" title="Active Sessions" />
+            )}
+          </button>
+
+          <button
+            className="nav-item"
+            onClick={() => navigate('/analysis')}
+          >
+            <Activity size={18} />
+            <span>EDF Wave Analysis</span>
+            <ArrowUpRight size={14} className="ml-auto opacity-60" />
+          </button>
+
+          {activeTab === 'patient-detail' && selectedPatient && (
+            <div className="active-patient-subnav animate-fade-in">
+              <div className="subnav-header">SELECTED PATIENT</div>
+              <div className="subnav-patient-card">
+                <Brain size={16} className="text-emerald-500 flex-shrink-0" />
+                <div className="truncate">
+                  <div className="font-bold text-xs truncate">{selectedPatient.name}</div>
+                  <div className="text-[0.68rem] text-emerald-600">{selectedPatient.id}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="nav-section-title mt-6">QUICK ACTIONS</div>
+          <button
+            className="nav-item text-emerald-400"
+            onClick={() => navigate('/analysis')}
+          >
+            <Plus size={18} />
+            <span>Upload New EDF File</span>
+          </button>
+
+          <button
+            className="nav-item"
+            onClick={() => alert("Report export feature initialized.")}
+          >
+            <FileText size={18} />
+            <span>Clinical Reports</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-footer">
+          <div className="doctor-profile-card">
+            <div className="doctor-avatar">
+              <Stethoscope size={18} className="text-emerald-400" />
+            </div>
+            <div className="doctor-info">
+              <span className="doc-name">Dr. Hospital Admin</span>
+              <span className="doc-role">Head of Neuropsychiatry</span>
+            </div>
+          </div>
+
+          <button className="btn-sidebar-logout" onClick={onLogout} title="Log Out">
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* 2. Main Body Area */}
+      <main className="workspace-main">
+        {/* Workspace Top Header Bar */}
+        <header className="workspace-topbar">
+          <div className="topbar-left">
+            <h2 className="topbar-title">
+              {activeTab === 'patients' && 'Patients Directory & SNN Monitoring'}
+              {activeTab === 'calendar' && 'Clinical Calendar & Patient Schedule'}
+              {activeTab === 'patient-detail' && 'Psychiatric Clinical Assessment & Patient Record'}
+            </h2>
+            <p className="topbar-subtitle">
+              {activeTab === 'patients' && 'Manage patient neurological records, EDF EEG analyses, and SNN stress scores'}
+              {activeTab === 'calendar' && 'Select dates to view scheduled patient EEG sessions and diagnostic logs'}
+              {activeTab === 'patient-detail' && selectedPatient && `Comprehensive neurological profile, check-up issues, EEG graphs, and session logs for ${selectedPatient.name}`}
+            </p>
+          </div>
+
+          <div className="topbar-actions">
+            {activeTab === 'patient-detail' ? (
+              <button
+                className="btn-back-directory"
+                onClick={() => setActiveTab('patients')}
+              >
+                <ArrowLeft size={16} />
+                <span>Back to Patients Directory</span>
+              </button>
+            ) : (
+              <button
+                className={`topbar-icon-btn ${activeTab === 'calendar' ? 'active' : ''}`}
+                onClick={() => setActiveTab(activeTab === 'calendar' ? 'patients' : 'calendar')}
+                title="Toggle Clinical Calendar Screen"
+              >
+                <CalendarIcon size={20} />
+                <span className="icon-btn-label">Calendar View</span>
+              </button>
+            )}
+
+            <button className="topbar-logout-btn" onClick={onLogout}>
+              <LogOut size={16} />
+              <span>Logout</span>
+            </button>
+          </div>
+        </header>
+
+        {/* TAB 1: PATIENTS DIRECTORY (LIST VIEW) */}
+        {activeTab === 'patients' && (
+          <div className="workspace-content animate-fade-in">
+            {/* Search & Filter Control Bar */}
+            <div className="controls-bar">
+              <div className="search-box">
+                <Search size={18} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search by patient name, ID, or diagnosis..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button className="clear-search" onClick={() => setSearchQuery('')}>
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <div className="filter-pills">
+                <button
+                  className={`filter-pill ${filterState === 'ALL' ? 'active' : ''}`}
+                  onClick={() => setFilterState('ALL')}
+                >
+                  All Patients ({patients.length})
+                </button>
+                <button
+                  className={`filter-pill stressed ${filterState === 'Stressed' ? 'active' : ''}`}
+                  onClick={() => setFilterState('Stressed')}
+                >
+                  Stressed (High Risk)
+                </button>
+                <button
+                  className={`filter-pill focused ${filterState === 'Focused' ? 'active' : ''}`}
+                  onClick={() => setFilterState('Focused')}
+                >
+                  Focused
+                </button>
+                <button
+                  className={`filter-pill neutral ${filterState === 'Neutral' ? 'active' : ''}`}
+                  onClick={() => setFilterState('Neutral')}
+                >
+                  Neutral / Rest
+                </button>
+              </div>
+            </div>
+
+            {/* Patients List Table Card */}
+            <div className="table-card">
+              <table className="patients-table">
+                <thead>
+                  <tr>
+                    <th>Patient Info</th>
+                    <th>Cognitive State</th>
+                    <th>SNN Risk Score</th>
+                    <th>EEG Metrics</th>
+                    <th>Session Date & Time</th>
+                    <th>EDF Status</th>
+                    <th className="text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPatients.length > 0 ? (
+                    filteredPatients.map(p => (
+                      <tr key={p.id} className="patient-row">
+                        <td>
+                          <div className="patient-name-block">
+                            <span className="patient-name">{p.name}</span>
+                            <span className="patient-meta">{p.id} • {p.age} yrs • {p.gender}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${p.cognitiveState.toLowerCase()}`}>
+                            {p.cognitiveState === 'Stressed' && <AlertTriangle size={12} />}
+                            {p.cognitiveState === 'Focused' && <CheckCircle2 size={12} />}
+                            {p.cognitiveState}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="risk-score-wrapper">
+                            <div className="risk-bar-container">
+                              <div
+                                className={`risk-bar ${p.snnRiskScore > 70 ? 'high' : p.snnRiskScore > 40 ? 'med' : 'low'}`}
+                                style={{ width: `${p.snnRiskScore}%` }}
+                              />
+                            </div>
+                            <span className="risk-value">{p.snnRiskScore}% SNN Spike</span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="metrics-cell">
+                            <span className="metric-tag">Beta/Alpha: <strong>{p.betaAlphaRatio}</strong></span>
+                            <span className="metric-tag">HR: <strong>{p.heartRate} BPM</strong></span>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="time-cell">
+                            <Clock size={13} className="text-emerald-500" />
+                            <span>{p.sessionDate} at {p.sessionTime}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className="edf-badge">
+                            {p.edfStatus}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="actions-cell">
+                            <button
+                              className="btn-action-view"
+                              onClick={() => handleOpenPatientDetail(p)}
+                              title="Open Full Clinical Patient Details Window"
+                            >
+                              <Eye size={15} />
+                              <span>Details</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="no-data-cell">
+                        No patient records found matching your query.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: CALENDAR SCHEDULE SCREEN */}
+        {activeTab === 'calendar' && (
+          <div className="workspace-content animate-fade-in">
+            <div className="calendar-grid-container">
+              {/* Left Calendar Controls */}
+              <div className="calendar-card">
+                <div className="calendar-month-header">
+                  <h3>{monthNames[month]} {year}</h3>
+                  <div className="calendar-nav-buttons">
+                    <button
+                      onClick={() => setCurrentMonthDate(new Date(year, month - 1, 1))}
+                      className="cal-btn"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      onClick={() => setCurrentMonthDate(new Date(year, month + 1, 1))}
+                      className="cal-btn"
+                    >
+                      <ChevronRightIcon size={18} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Days Header */}
+                <div className="calendar-days-header">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+
+                {/* Dates Matrix */}
+                <div className="calendar-dates-grid">
+                  {Array.from({ length: firstDayOfWeek }).map((_, idx) => (
+                    <div key={`blank-${idx}`} className="date-cell blank" />
+                  ))}
+
+                  {Array.from({ length: daysInMonth }).map((_, idx) => {
+                    const dayNum = idx + 1;
+                    const dateObj = new Date(year, month, dayNum);
+                    const dateKey = formatDateKey(dateObj);
+                    const isSelected = dateKey === selectedDateKey;
+                    const isToday = dateKey === formatDateKey(todayDate);
+                    const isFuture = dateObj > todayDate;
+                    const hasPatients = patients.some(p => p.sessionDate === dateKey);
+
+                    return (
+                      <button
+                        key={dateKey}
+                        className={`date-cell ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''} ${isFuture ? 'future-locked' : ''} ${hasPatients ? 'has-patients' : ''}`}
+                        onClick={() => setSelectedCalendarDate(dateObj)}
+                        title={isFuture ? `Date ${dayNum} is in the future (Locked Session)` : `View sessions for ${dateKey}`}
+                      >
+                        <span className="day-number">{dayNum}</span>
+                        {hasPatients && <span className="patient-dot" />}
+                        {isFuture && <Lock size={10} className="lock-icon-subtle" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="calendar-legend">
+                  <div className="legend-item"><span className="dot active-dot" /> Patients Scheduled</div>
+                  <div className="legend-item"><span className="legend-today-outline" /> Today (Green Outline)</div>
+                  <div className="legend-item"><span className="legend-locked-box"><Lock size={10} /></span> Future Date (Locked)</div>
+                </div>
+              </div>
+
+              {/* Right Side: List of Patients for Selected Date & Time */}
+              <div className="date-patients-card">
+                <div className="date-card-header">
+                  <div>
+                    <span className="sub-tag">SELECTED DATE SESSION LOG</span>
+                    <h3>Patients on {selectedCalendarDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</h3>
+                  </div>
+                  <span className="count-badge">{patientsForSelectedDate.length} Patients Recorded</span>
+                </div>
+
+                <div className="date-patients-list">
+                  {patientsForSelectedDate.length > 0 ? (
+                    patientsForSelectedDate.map(p => (
+                      <div key={p.id} className="date-patient-item">
+                        <div className="patient-item-header">
+                          <div className="patient-main-info">
+                            <span className="patient-time">{p.sessionTime}</span>
+                            <span className="patient-name-title">{p.name}</span>
+                            <span className="patient-id-tag">({p.id})</span>
+                          </div>
+                          <span className={`status-badge ${p.cognitiveState.toLowerCase()}`}>
+                            {p.cognitiveState}
+                          </span>
+                        </div>
+
+                        <div className="patient-item-details">
+                          <div className="detail-chip">
+                            <Brain size={13} className="text-emerald-500" />
+                            <span>Beta/Alpha: <strong>{p.betaAlphaRatio}</strong></span>
+                          </div>
+                          <div className="detail-chip">
+                            <Heart size={13} className="text-red-500" />
+                            <span>Heart Rate: <strong>{p.heartRate} BPM</strong></span>
+                          </div>
+                          <div className="detail-chip">
+                            <Activity size={13} className="text-emerald-600" />
+                            <span>SNN Risk: <strong>{p.snnRiskScore}%</strong></span>
+                          </div>
+                        </div>
+
+                        <p className="patient-item-diagnosis">
+                          <strong>Diagnosis:</strong> {p.diagnosis}
+                        </p>
+                        <p className="patient-item-notes">
+                          <strong>Doctor Notes:</strong> {p.doctorNotes}
+                        </p>
+
+                        <div className="patient-item-actions">
+                          <button
+                            className="btn-link-action"
+                            onClick={() => handleOpenPatientDetail(p)}
+                          >
+                            <Eye size={14} />
+                            <span>View Full Clinical Record</span>
+                          </button>
+                          <button
+                            className="btn-link-action secondary"
+                            onClick={() => alert(`Downloading PDF diagnostic report for ${p.name}`)}
+                          >
+                            <Download size={14} />
+                            <span>Download PDF Report</span>
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="no-patients-scheduled">
+                      <CalendarIcon size={32} className="opacity-30 mb-2" />
+                      <h4>No Patient Sessions Recorded</h4>
+                      <p>There are no patient appointments or SNN data logs recorded for this specific date.</p>
+                      {isFutureDate && (
+                        <span className="future-lock-note">
+                          <Lock size={12} /> Future date session tracking will activate when this date arrives.
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: PSYCHIATRIC CLINICAL PATIENT DETAIL WINDOW */}
+        {activeTab === 'patient-detail' && selectedPatient && (
+          <div className="workspace-content patient-detail-window-view animate-fade-in">
+            {/* Header Banner Hero Card */}
+            <div className="patient-hero-card">
+              <div className="hero-main-info">
+                <div className="patient-avatar-badge">
+                  <User size={28} className="text-emerald-600" />
+                </div>
+                <div>
+                  <div className="patient-title-row">
+                    <h2>{selectedPatient.name}</h2>
+                    <span className="hero-id-tag">{selectedPatient.id}</span>
+                    <span className={`status-badge ${selectedPatient.cognitiveState.toLowerCase()}`}>
+                      {selectedPatient.cognitiveState}
+                    </span>
+                  </div>
+                  <div className="patient-demographics-row">
+                    <span><strong>Age:</strong> {selectedPatient.age} yrs</span>
+                    <span className="dot-sep">•</span>
+                    <span><strong>Sex:</strong> {selectedPatient.gender}</span>
+                    <span className="dot-sep">•</span>
+                    <span><strong>Blood Type:</strong> {selectedPatient.bloodType || 'A+'}</span>
+                    <span className="dot-sep">•</span>
+                    <span><strong>Attending Doctor:</strong> {selectedPatient.attendingDoctor}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hero-actions">
+                <button
+                  className="btn-hero-action primary"
+                  onClick={() => alert(`Generating & Downloading Official Psychiatric Assessment PDF for ${selectedPatient.name}...`)}
+                >
+                  <Download size={16} />
+                  <span>Download Psychiatric Report</span>
+                </button>
+
+                <button
+                  className="btn-hero-action secondary"
+                  onClick={() => navigate('/analysis')}
+                >
+                  <Activity size={16} />
+                  <span>Launch EDF Wave Analysis</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Metrics Bar */}
+            <div className="detail-metrics-bar">
+              <div className="metric-strip-card">
+                <span className="strip-label">SNN NEURAL RISK SCORE</span>
+                <div className="strip-value-row">
+                  <span className="strip-value text-emerald-600">{selectedPatient.snnRiskScore}%</span>
+                  <span className="strip-sub">Spike Rate Load</span>
+                </div>
+                <div className="strip-progress-bg">
+                  <div
+                    className={`strip-progress-bar ${selectedPatient.snnRiskScore > 70 ? 'high' : 'normal'}`}
+                    style={{ width: `${selectedPatient.snnRiskScore}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="metric-strip-card">
+                <span className="strip-label">BETA / ALPHA WAVE RATIO</span>
+                <div className="strip-value-row">
+                  <span className="strip-value">{selectedPatient.betaAlphaRatio}</span>
+                </div>
+                <span className="strip-sub text-emerald-700">Cortical Arousal Metric</span>
+              </div>
+
+              <div className="metric-strip-card">
+                <span className="strip-label">AVERAGE HEART RATE (HRV)</span>
+                <div className="strip-value-row">
+                  <span className="strip-value">{selectedPatient.heartRate} BPM</span>
+                </div>
+                <span className="strip-sub text-emerald-700">Autonomic Cardiac Metric</span>
+              </div>
+
+              <div className="metric-strip-card">
+                <span className="strip-label">LAST RECORDED SESSION</span>
+                <div className="strip-value-row">
+                  <span className="strip-value text-sm font-semibold">{selectedPatient.sessionDate}</span>
+                </div>
+                <span className="strip-sub">{selectedPatient.sessionTime}</span>
+              </div>
+            </div>
+
+            {/* Two Column Grid: Left Checkup Problems & Psychiatrist Report, Right Graphs */}
+            <div className="detail-grid-layout">
+              {/* Left Column: Problems Facing & Psychiatric Assessment */}
+              <div className="detail-left-col">
+                {/* Check-Up Problems & Chief Complaints Card */}
+                <div className="clinical-card">
+                  <div className="card-header-title">
+                    <AlertCircle size={18} className="text-emerald-600" />
+                    <h3>Check-Up Problems & Chief Complaints</h3>
+                  </div>
+
+                  <div className="card-body-content">
+                    <div className="chief-complaint-box">
+                      <span className="box-section-title">CHIEF COMPLAINT SUBMITTED FOR CHECKUP</span>
+                      <p className="complaint-text">"{selectedPatient.chiefComplaint}"</p>
+                    </div>
+
+                    <div className="problems-list-section">
+                      <span className="box-section-title">CLINICAL & PHYSIOLOGICAL PROBLEMS IDENTIFIED</span>
+                      <ul className="problems-bullet-list">
+                        {selectedPatient.checkupProblems ? (
+                          selectedPatient.checkupProblems.map((prob, idx) => (
+                            <li key={idx} className="problem-bullet-item">
+                              <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                              <span>{prob}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="problem-bullet-item">
+                            <CheckCircle2 size={15} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                            <span>High Beta wave hyperactivity during sustained attention tasks</span>
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Psychiatric Assessment Report Preview Box */}
+                <div className="clinical-card mt-6">
+                  <div className="card-header-title">
+                    <FileCheck size={18} className="text-emerald-600" />
+                    <h3>Psychiatric Diagnostic Assessment & Clinical Summary</h3>
+                  </div>
+
+                  <div className="card-body-content">
+                    <div className="icd-code-row">
+                      <span className="label">Diagnostic Classification:</span>
+                      <span className="icd-badge">{selectedPatient.icdCode || 'ICD-11: 6C40 / MB23.1'}</span>
+                    </div>
+
+                    <div className="impression-box">
+                      <h4>Neurological Diagnostic Assessment</h4>
+                      <p>{selectedPatient.diagnosis}</p>
+                    </div>
+
+                    <div className="doctor-observations-box">
+                      <h4>Attending Psychiatrist Clinical Observations</h4>
+                      <p>{selectedPatient.doctorNotes}</p>
+                    </div>
+
+                    <div className="treatment-plan-box">
+                      <h4>Recommended Clinical Treatment & Intervention Plan</h4>
+                      <p>{selectedPatient.treatmentPlan || 'Initiate structured biofeedback breaks and pacing intervals.'}</p>
+                    </div>
+
+                    <div className="report-signature-footer">
+                      <div className="sig-block">
+                        <span className="sig-title">Attending Neuropsychiatrist Signature</span>
+                        <span className="sig-name">{selectedPatient.attendingDoctor}</span>
+                      </div>
+                      <button
+                        className="btn-export-pdf"
+                        onClick={() => alert(`Exporting Official Clinical PDF Report for ${selectedPatient.name}`)}
+                      >
+                        <Download size={14} />
+                        <span>Export PDF</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Graphs Panel */}
+              <div className="detail-right-col">
+                {/* SNN Spike Rate & HRV Timeline Graph */}
+                <div className="clinical-card">
+                  <div className="card-header-title">
+                    <TrendingUp size={18} className="text-emerald-600" />
+                    <h3>SNN Neural Spike Rate & HRV Timeline</h3>
+                  </div>
+
+                  <div className="card-body-content">
+                    <p className="graph-subtext">Continuous 30-minute SNN spike rate monitoring alongside cardiac pulse changes.</p>
+                    <div className="chart-container-wrapper">
+                      <ResponsiveContainer width="100%" height={230}>
+                        <AreaChart data={selectedPatient.graphData || [
+                          { time: "00:00", alpha: 0.5, beta: 0.4, heartRate: 74, snnSpikes: 22 },
+                          { time: "10:00", alpha: 0.4, beta: 0.8, heartRate: 85, snnSpikes: 58 },
+                          { time: "20:00", alpha: 0.3, beta: 1.1, heartRate: 98, snnSpikes: 84 },
+                          { time: "30:00", alpha: 0.5, beta: 0.6, heartRate: 80, snnSpikes: 42 }
+                        ]}>
+                          <defs>
+                            <linearGradient id="snnColor" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#16A34A" stopOpacity={0.4}/>
+                              <stop offset="95%" stopColor="#16A34A" stopOpacity={0.0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(34, 197, 94, 0.15)" />
+                          <XAxis dataKey="time" stroke="#166534" fontSize={11} />
+                          <YAxis stroke="#166534" fontSize={11} />
+                          <Tooltip contentStyle={{ background: '#FFFFFF', borderColor: '#16A34A', borderRadius: '8px', fontSize: '12px' }} />
+                          <Legend wrapperStyle={{ fontSize: '11px' }} />
+                          <Area type="monotone" dataKey="snnSpikes" name="SNN Spike Rate (%)" stroke="#16A34A" fillOpacity={1} fill="url(#snnColor)" strokeWidth={2} />
+                          <Area type="monotone" dataKey="heartRate" name="Heart Rate (BPM)" stroke="#DC2626" fillOpacity={0} strokeWidth={2} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+
+                {/* EEG Waveband Power Spectrum Graph */}
+                <div className="clinical-card mt-6">
+                  <div className="card-header-title">
+                    <Layers size={18} className="text-emerald-600" />
+                    <h3>EEG Waveband Spectral Distribution</h3>
+                  </div>
+
+                  <div className="card-body-content">
+                    <p className="graph-subtext">Relative power distribution across Delta, Theta, Alpha, Beta, and Gamma wavebands.</p>
+                    <div className="chart-container-wrapper">
+                      <ResponsiveContainer width="100%" height={210}>
+                        <BarChart data={selectedPatient.waveSpectrum || [
+                          { wave: "Delta", power: 12 },
+                          { wave: "Theta", power: 18 },
+                          { wave: "Alpha", power: 24 },
+                          { wave: "Beta", power: 78 },
+                          { wave: "Gamma", power: 45 }
+                        ]}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(34, 197, 94, 0.15)" />
+                          <XAxis dataKey="wave" stroke="#166534" fontSize={11} />
+                          <YAxis stroke="#166534" fontSize={11} />
+                          <Tooltip contentStyle={{ background: '#FFFFFF', borderColor: '#16A34A', borderRadius: '8px', fontSize: '12px' }} />
+                          <Bar dataKey="power" name="Power Spectral Density (µV²)" fill="#16A34A" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Section: Recorded Session Logs Audit Table */}
+            <div className="recorded-sessions-card mt-6">
+              <div className="card-header-title">
+                <Clock size={18} className="text-emerald-600" />
+                <h3>Recorded Clinical EEG Sessions & EDF Audits</h3>
+              </div>
+
+              <div className="table-card">
+                <table className="patients-table">
+                  <thead>
+                    <tr>
+                      <th>Session ID</th>
+                      <th>Date & Time</th>
+                      <th>Duration</th>
+                      <th>Raw EDF File</th>
+                      <th>SNN Risk Score</th>
+                      <th>Inferred Cognitive State</th>
+                      <th>Doctor Observations</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedPatient.recordedSessions && selectedPatient.recordedSessions.length > 0 ? (
+                      selectedPatient.recordedSessions.map(ses => (
+                        <tr key={ses.id} className="patient-row">
+                          <td className="font-mono font-bold text-xs">{ses.id}</td>
+                          <td>
+                            <div className="time-cell">
+                              <Clock size={13} className="text-emerald-500" />
+                              <span>{ses.date} at {ses.time}</span>
+                            </div>
+                          </td>
+                          <td className="text-xs font-semibold">{ses.duration}</td>
+                          <td>
+                            <span className="edf-badge">
+                              {ses.edfFile}
+                            </span>
+                          </td>
+                          <td>
+                            <span className="font-bold text-xs text-emerald-700">{ses.snnScore}% Spike Rate</span>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${ses.state.toLowerCase()}`}>
+                              {ses.state}
+                            </span>
+                          </td>
+                          <td className="text-xs text-[var(--text-secondary)] max-w-xs truncate">{ses.notes}</td>
+                          <td>
+                            <div className="actions-cell">
+                              <button
+                                className="btn-action-view"
+                                onClick={() => navigate('/analysis')}
+                                title="Open EDF Waveform in Analyzer"
+                              >
+                                <Activity size={14} />
+                                <span>Analyze EDF</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="8" className="no-data-cell">
+                          No historical sessions recorded for this patient.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

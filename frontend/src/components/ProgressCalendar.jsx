@@ -41,10 +41,10 @@ const getInitialProgressLogs = (todayRef = new Date()) => {
     const key = formatDateKey(d);
 
     if (i === 0) {
-      // Today (Stressed Exam Prep Crunch - Current Active Session)
+      // Today (Stressed SNN Session - Current Active Session)
       logs[key] = {
         state: 'Stressed',
-        label: 'Acute Exam Crunch (Current Session)',
+        label: 'Acute SNN Stress Spike (Current Session)',
         avgBeta: 1.12,
         avgAlpha: 0.36,
         avgHeartRate: 98,
@@ -52,13 +52,13 @@ const getInitialProgressLogs = (todayRef = new Date()) => {
         stressSpikes: 3,
         breathingBreaks: 4,
         snnScore: 82,
-        notes: 'Active exam preparation crunch session. High Beta wave activity recorded during physics practice sets.'
+        notes: 'Active EEG monitoring session. High Beta wave activity and elevated SNN stress score recorded.'
       };
     } else if (i === -1) {
       // Yesterday (Stressed)
       logs[key] = {
         state: 'Stressed',
-        label: 'Exam Review Crunch',
+        label: 'Cognitive Stress Evaluation',
         avgBeta: 1.08,
         avgAlpha: 0.38,
         avgHeartRate: 94,
@@ -66,7 +66,7 @@ const getInitialProgressLogs = (todayRef = new Date()) => {
         stressSpikes: 4,
         breathingBreaks: 3,
         snnScore: 78,
-        notes: 'Late night study crunch. High cognitive stress detected; executed 3 breathing breaks.'
+        notes: 'High cognitive stress detected during extended monitoring session; executed 3 guided breathing breaks.'
       };
     } else if (i < -1 && i % 3 === 0) {
       // Stress Days
@@ -587,7 +587,7 @@ export default function ProgressCalendar() {
                 disabled={selectedIsFuture}
                 value={customNote}
                 onChange={(e) => setCustomNote(e.target.value)}
-                placeholder={selectedIsFuture ? "Editing disabled for future dates..." : "Add custom observation or exam note..."}
+                placeholder={selectedIsFuture ? "Editing disabled for future dates..." : "Add custom clinical observation or EEG note..."}
                 className="flex-1 px-3 py-1.5 text-xs bg-[var(--bg-subtle)] border border-[var(--border-subtle)] rounded-lg text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-cyan)] disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
