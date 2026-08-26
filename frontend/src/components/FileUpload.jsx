@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Upload, File, X, Sparkles, Activity } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, File, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import GlowButton from './ui/GlowButton';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -10,25 +9,7 @@ export default function FileUpload({ onUploadSuccess }) {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [error, setError] = useState('');
-  const [demoSamples, setDemoSamples] = useState([]);
-  const [loadingDemo, setLoadingDemo] = useState(false);
   const { getAuthHeaders } = useAuth();
-
-  useEffect(() => {
-    fetchDemoSamples();
-  }, []);
-
-  const fetchDemoSamples = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/demo-samples`);
-      if (res.ok) {
-        const data = await res.json();
-        setDemoSamples(data.samples || []);
-      }
-    } catch (err) {
-      console.warn("Failed to fetch demo samples:", err);
-    }
-  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -102,14 +83,6 @@ export default function FileUpload({ onUploadSuccess }) {
     }
   };
 
-  const handleLoadDemoSample = (uploadId) => {
-    setLoadingDemo(true);
-    if (onUploadSuccess) {
-      onUploadSuccess(uploadId);
-    }
-    setLoadingDemo(false);
-  };
-
   const handleRemove = () => {
     setSelectedFile(null);
     setError('');
@@ -157,54 +130,7 @@ export default function FileUpload({ onUploadSuccess }) {
           {uploading ? 'Processing...' : 'Upload & Analyze'}
         </button>
       )}
-
-      {/* Synthetic Demo Datasets Section */}
-      <div className="demo-samples-section mt-6 pt-6 border-t border-[var(--border-color)]">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="text-emerald-600" size={18} />
-          <h4 className="font-heading font-semibold text-sm text-[var(--text-primary)]">
-            Explore Pre-configured Demo Datasets
-          </h4>
-        </div>
-        <p className="text-xs text-[var(--text-secondary)] mb-4">
-          Select a synthetic clinical case study to immediately view full SNN wave decomposition, spectral FFT, and PDF export without uploading custom files.
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {demoSamples.map((sample) => (
-            <div
-              key={sample.upload_id}
-              className="demo-sample-card p-3 rounded-lg border border-[var(--border-color)] bg-[var(--bg-glass)] hover:border-emerald-500/50 transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-emerald-700 font-mono flex items-center gap-1">
-                    <Activity size={12} />
-                    {sample.filename}
-                  </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">
-                    {sample.duration}s
-                  </span>
-                </div>
-                <h5 className="font-medium text-xs text-[var(--text-primary)] mb-1">
-                  {sample.name}
-                </h5>
-                <p className="text-[11px] text-[var(--text-secondary)] line-clamp-2 mb-3">
-                  {sample.summary}
-                </p>
-              </div>
-              <GlowButton
-                variant="secondary"
-                onClick={() => handleLoadDemoSample(sample.upload_id)}
-                disabled={loadingDemo}
-                className="w-full text-xs py-1.5"
-              >
-                Load Sample Case
-              </GlowButton>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }
+

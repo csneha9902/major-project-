@@ -55,10 +55,10 @@ def get_random_tip(state: str | None) -> dict:
     )
     # Add contextual prefix based on state
     prefix = {
-        "Stressed": "To reduce stress: ",
-        "Focused": "To maintain focus: ",
-        "Neutral": "To optimize learning: "
-    }.get(s, "Tip: ")
+        "Stressed": "💆 To reduce stress: ",
+        "Focused": "✨ To maintain focus: ",
+        "Neutral": "🎯 To optimize learning: "
+    }.get(s, "💡 Tip: ")
     return {"tip": f"{prefix}{tip}", "state": s, "category": category}
 
 

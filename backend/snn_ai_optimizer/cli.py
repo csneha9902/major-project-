@@ -25,4 +25,4 @@ def run_pipeline_cmd():
     print("[CLI] Baseline training done")
     hybrid_run()
     print("[CLI] Hybrid training done")
-    print("[CLI] Pipeline complete")
+    print("[CLI] ✅ Pipeline complete")

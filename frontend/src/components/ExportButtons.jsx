@@ -41,21 +41,21 @@ export default function ExportButtons() {
   const hasFilesMount = true;
   return (
     <div className="glass-card p-5">
-      <div className="font-heading font-bold text-[var(--text-primary)] mb-3">Export Data & Metrics</div>
+      <div className="font-heading font-semibold text-[var(--text-primary)] mb-3">Export / Download</div>
       <div className="flex flex-wrap gap-3">
-        <GlowButton variant="success" onClick={exportLatest}>
+        <GlowButton variant="blue" onClick={exportLatest}>
           <Download size={16} />
           Latest Metrics (JSON)
         </GlowButton>
-        <GlowButton variant="cyan" onClick={exportHistory}>
+        <GlowButton variant="violet" onClick={exportHistory}>
           <History size={16} />
-          History Log (JSON)
+          History (JSON)
         </GlowButton>
       </div>
       {hasFilesMount && (
         <div className="text-xs text-[var(--text-muted)] mt-4">
-          Direct File Downloads:
-          <ul className="mt-2 space-y-1.5 font-mono">
+          Or download raw files:
+          <ul className="mt-2 space-y-1.5">
             <li><a className="text-[var(--accent-cyan)] hover:underline" href={`${API_BASE}/files/latest_metrics.json`} target="_blank" rel="noreferrer">/files/latest_metrics.json</a></li>
             <li><a className="text-[var(--accent-cyan)] hover:underline" href={`${API_BASE}/files/baseline/metrics.json`} target="_blank" rel="noreferrer">/files/baseline/metrics.json</a></li>
             <li><a className="text-[var(--accent-cyan)] hover:underline" href={`${API_BASE}/files/snn/metrics.json`} target="_blank" rel="noreferrer">/files/snn/metrics.json</a></li>

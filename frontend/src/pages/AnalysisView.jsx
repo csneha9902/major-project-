@@ -13,7 +13,7 @@ import { Download, ArrowLeft, RotateCcw } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-const COLORS = ['#16A34A', '#059669', '#15803D', '#22C55E', '#14532D'];
+const COLORS = ['#06d6a0', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444'];
 
 const formatTimestamp = (ts) => {
   if (ts > 1000000000) {
@@ -230,12 +230,12 @@ export default function AnalysisView() {
                 >
                   <defs>
                     <linearGradient id="anaAlpha" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#059669" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="anaBeta" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#16A34A" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#16A34A" stopOpacity={0} />
+                      <stop offset="0%" stopColor="#ef4444" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
                     </linearGradient>
                     <filter id="anaGlow">
                       <feGaussianBlur stdDeviation="3" result="blur" />
@@ -245,32 +245,32 @@ export default function AnalysisView() {
                       </feMerge>
                     </filter>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 6" stroke="rgba(34,197,94,0.12)" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 6" stroke="rgba(148,163,184,0.06)" vertical={false} />
                   <XAxis
                     dataKey="timestamp"
                     stroke="transparent"
-                    tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                    tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                     axisLine={false}
                     tickLine={false}
                   />
                   <YAxis
                     yAxisId="left"
                     stroke="transparent"
-                    tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                    tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                     domain={[0, 2]}
                     axisLine={false}
                     tickLine={false}
-                    label={{ value: 'α/β', angle: -90, position: 'insideLeft', fill: '#166534', fontSize: 11 }}
+                    label={{ value: 'α/β', angle: -90, position: 'insideLeft', fill: '#64748b', fontSize: 11 }}
                   />
                   <YAxis
                     yAxisId="right"
                     orientation="right"
                     stroke="transparent"
-                    tick={{ fill: '#D97706', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                    tick={{ fill: '#f59e0b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                     domain={['dataMin', 'dataMax']}
                     axisLine={false}
                     tickLine={false}
-                    label={{ value: 'BPM', angle: 90, position: 'insideRight', fill: '#D97706', fontSize: 11 }}
+                    label={{ value: 'BPM', angle: 90, position: 'insideRight', fill: '#f59e0b', fontSize: 11 }}
                   />
                   <Tooltip content={<ChartTooltip />} />
                   <Legend
@@ -284,7 +284,7 @@ export default function AnalysisView() {
                     yAxisId="left"
                     type="monotone"
                     dataKey="alpha"
-                    stroke="#059669"
+                    stroke="#3b82f6"
                     name="Relaxation (Alpha)"
                     dot={false}
                     isAnimationActive={true}
@@ -297,7 +297,7 @@ export default function AnalysisView() {
                     yAxisId="left"
                     type="monotone"
                     dataKey="beta"
-                    stroke="#16A34A"
+                    stroke="#ef4444"
                     name="Focus (Beta)"
                     dot={false}
                     isAnimationActive={true}
@@ -310,7 +310,7 @@ export default function AnalysisView() {
                     yAxisId="right"
                     type="monotone"
                     dataKey="heartRate"
-                    stroke="#D97706"
+                    stroke="#f59e0b"
                     name="Heart Rate (BPM)"
                     dot={false}
                     isAnimationActive={true}
@@ -332,12 +332,12 @@ export default function AnalysisView() {
                   <ComposedChart data={freqData}>
                     <defs>
                       <linearGradient id="fftAlpha" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#059669" stopOpacity={0.2} />
-                        <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                       </linearGradient>
                       <linearGradient id="fftBeta" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#16A34A" stopOpacity={0.2} />
-                        <stop offset="100%" stopColor="#16A34A" stopOpacity={0} />
+                        <stop offset="0%" stopColor="#ef4444" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="#ef4444" stopOpacity={0} />
                       </linearGradient>
                       <filter id="fftGlow">
                         <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -347,21 +347,21 @@ export default function AnalysisView() {
                         </feMerge>
                       </filter>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 6" stroke="rgba(34,197,94,0.12)" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 6" stroke="rgba(148,163,184,0.06)" vertical={false} />
                     <XAxis
                       dataKey="frequency"
                       stroke="transparent"
-                      tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                      tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                       axisLine={false}
                       tickLine={false}
-                      label={{ value: 'Frequency (Hz)', position: 'insideBottom', fill: '#166534', fontSize: 11, offset: -5 }}
+                      label={{ value: 'Frequency (Hz)', position: 'insideBottom', fill: '#64748b', fontSize: 11, offset: -5 }}
                     />
                     <YAxis
                       stroke="transparent"
-                      tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+                      tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
                       axisLine={false}
                       tickLine={false}
-                      label={{ value: 'Power', angle: -90, fill: '#166534', fontSize: 11 }}
+                      label={{ value: 'Power', angle: -90, fill: '#64748b', fontSize: 11 }}
                     />
                     <Tooltip content={<ChartTooltip />} />
                     <Legend
@@ -374,7 +374,7 @@ export default function AnalysisView() {
                     <Line
                       type="monotone"
                       dataKey="alphaPower"
-                      stroke="#059669"
+                      stroke="#3b82f6"
                       name="Alpha Power"
                       dot={false}
                       isAnimationActive={true}
@@ -386,7 +386,7 @@ export default function AnalysisView() {
                     <Line
                       type="monotone"
                       dataKey="betaPower"
-                      stroke="#16A34A"
+                      stroke="#ef4444"
                       name="Beta Power"
                       dot={false}
                       isAnimationActive={true}
@@ -427,9 +427,9 @@ export default function AnalysisView() {
                       label={renderPieLabel}
                       outerRadius={80}
                       innerRadius={35}
-                      fill="#16A34A"
+                      fill="#8884d8"
                       dataKey="value"
-                      stroke="rgba(248,252,246,0.95)"
+                      stroke="rgba(10,14,26,0.8)"
                       strokeWidth={2}
                       animationDuration={1500}
                       animationEasing="ease-out"
@@ -487,13 +487,13 @@ export default function AnalysisView() {
                 <h3>Statistical Summary</h3>
                 <div className="stats-grid">
                   <div className="stat-box">
-                    <div className="stat-title" style={{ color: '#059669' }}>Alpha</div>
+                    <div className="stat-title" style={{ color: '#3b82f6' }}>Alpha</div>
                     <div className="stat-detail">Mean: {stats.alpha.mean?.toFixed(3)}</div>
                     <div className="stat-detail">Std: {stats.alpha.std?.toFixed(3)}</div>
                     <div className="stat-detail">Range: {stats.alpha.min?.toFixed(3)} – {stats.alpha.max?.toFixed(3)}</div>
                   </div>
                   <div className="stat-box">
-                    <div className="stat-title" style={{ color: '#16A34A' }}>Beta</div>
+                    <div className="stat-title" style={{ color: '#ef4444' }}>Beta</div>
                     <div className="stat-detail">Mean: {stats.beta.mean?.toFixed(3)}</div>
                     <div className="stat-detail">Std: {stats.beta.std?.toFixed(3)}</div>
                     <div className="stat-detail">Range: {stats.beta.min?.toFixed(3)} – {stats.beta.max?.toFixed(3)}</div>

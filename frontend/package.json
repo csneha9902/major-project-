@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "predev": "npx --yes kill-port 5173 5174",
     "dev": "vite --host localhost --port 5173",
     "build": "vite build",
     "preview": "vite preview --host localhost --port 5173"

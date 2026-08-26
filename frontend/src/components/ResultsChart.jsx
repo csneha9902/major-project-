@@ -54,26 +54,26 @@ export default function ResultsChart({ data }) {
         <BarChart data={rows} margin={{ top: 20, right: 16, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="barAcc" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#16A34A" />
-              <stop offset="100%" stopColor="#15803D" />
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#2563eb" />
             </linearGradient>
             <linearGradient id="barAuc" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" />
-              <stop offset="100%" stopColor="#047857" />
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#7c3aed" />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 6" stroke="rgba(34,197,94,0.12)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 6" stroke="rgba(148,163,184,0.06)" vertical={false} />
           <XAxis
             dataKey="model"
             stroke="transparent"
-            tick={{ fill: '#166534', fontSize: 12, fontFamily: "'Exo 2', sans-serif" }}
+            tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: "'Exo 2', sans-serif" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             domain={[0, 1]}
             stroke="transparent"
-            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
           />

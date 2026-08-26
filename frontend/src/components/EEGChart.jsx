@@ -12,13 +12,13 @@ export default function EEGChart({ data }) {
 
   return (
     <div className="chart-card">
-      <h3>EEG Signal Stream</h3>
+      <h3>EEG Signal</h3>
       <ResponsiveContainer width="100%" height={300}>
         <ComposedChart data={chartData} margin={{ top: 10, right: 16, left: 0, bottom: 5 }}>
           <defs>
             <linearGradient id="eegGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#16A34A" stopOpacity={0.25} />
-              <stop offset="100%" stopColor="#16A34A" stopOpacity={0} />
+              <stop offset="0%" stopColor="#06d6a0" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="#06d6a0" stopOpacity={0} />
             </linearGradient>
             <filter id="eegGlow">
               <feGaussianBlur stdDeviation="3" result="blur" />
@@ -28,18 +28,18 @@ export default function EEGChart({ data }) {
               </feMerge>
             </filter>
           </defs>
-          <CartesianGrid strokeDasharray="3 6" stroke="rgba(34,197,94,0.12)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 6" stroke="rgba(148,163,184,0.06)" vertical={false} />
           <XAxis
             dataKey="point"
             stroke="transparent"
-            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
-            label={{ value: 'Sample', position: 'insideBottom', offset: -5, fill: '#166534', fontSize: 11 }}
+            label={{ value: 'Sample', position: 'insideBottom', offset: -5, fill: '#64748b', fontSize: 11 }}
           />
           <YAxis
             stroke="transparent"
-            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
           />
@@ -49,9 +49,9 @@ export default function EEGChart({ data }) {
             type="monotone"
             dataKey="value"
             name="EEG Signal"
-            stroke="#16A34A"
+            stroke="#06d6a0"
             dot={false}
-            strokeWidth={2.5}
+            strokeWidth={2}
             filter="url(#eegGlow)"
             animationDuration={1500}
             animationEasing="ease-in-out"

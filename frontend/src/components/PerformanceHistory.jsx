@@ -26,12 +26,12 @@ export default function PerformanceHistory({ history }) {
         <ComposedChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
           <defs>
             <linearGradient id="perfBase" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#059669" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="#059669" stopOpacity={0} />
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="perfSnn" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#16A34A" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="#16A34A" stopOpacity={0} />
+              <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.15} />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0} />
             </linearGradient>
             <filter id="perfGlow">
               <feGaussianBlur stdDeviation="2.5" result="blur" />
@@ -41,18 +41,18 @@ export default function PerformanceHistory({ history }) {
               </feMerge>
             </filter>
           </defs>
-          <CartesianGrid strokeDasharray="3 6" stroke="rgba(34,197,94,0.12)" vertical={false} />
+          <CartesianGrid strokeDasharray="3 6" stroke="rgba(148,163,184,0.06)" vertical={false} />
           <XAxis
             dataKey="ts"
             stroke="transparent"
-            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
           />
           <YAxis
             domain={[0, 1]}
             stroke="transparent"
-            tick={{ fill: '#3F6212', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
+            tick={{ fill: '#64748b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }}
             axisLine={false}
             tickLine={false}
           />
@@ -64,10 +64,10 @@ export default function PerformanceHistory({ history }) {
           />
           <Area type="monotone" dataKey="base_acc" fill="url(#perfBase)" stroke="none" />
           <Area type="monotone" dataKey="snn_acc" fill="url(#perfSnn)" stroke="none" />
-          <Line type="monotone" dataKey="base_acc" name="Baseline Acc" stroke="#059669" dot={false} strokeWidth={2.5} filter="url(#perfGlow)" />
-          <Line type="monotone" dataKey="base_auc" name="Baseline AUC" stroke="#16A34A" dot={false} strokeWidth={2} filter="url(#perfGlow)" strokeDasharray="6 3" />
-          <Line type="monotone" dataKey="snn_acc" name="SNN Acc" stroke="#15803D" dot={false} strokeWidth={2.5} filter="url(#perfGlow)" />
-          <Line type="monotone" dataKey="snn_auc" name="SNN AUC" stroke="#22C55E" dot={false} strokeWidth={2} filter="url(#perfGlow)" strokeDasharray="6 3" />
+          <Line type="monotone" dataKey="base_acc" name="Baseline Acc" stroke="#3b82f6" dot={false} strokeWidth={2.5} filter="url(#perfGlow)" />
+          <Line type="monotone" dataKey="base_auc" name="Baseline AUC" stroke="#06d6a0" dot={false} strokeWidth={2} filter="url(#perfGlow)" strokeDasharray="6 3" />
+          <Line type="monotone" dataKey="snn_acc" name="SNN Acc" stroke="#8b5cf6" dot={false} strokeWidth={2.5} filter="url(#perfGlow)" />
+          <Line type="monotone" dataKey="snn_auc" name="SNN AUC" stroke="#f59e0b" dot={false} strokeWidth={2} filter="url(#perfGlow)" strokeDasharray="6 3" />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

@@ -1,12 +1,6 @@
 from __future__ import annotations
 
-try:
-    import mne
-    HAS_MNE = True
-except ImportError:
-    mne = None
-    HAS_MNE = False
-
+import mne
 import numpy as np
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -26,8 +20,6 @@ class EDFProcessor:
 
     def load(self) -> None:
         """Load EDF file using MNE."""
-        if not HAS_MNE:
-            raise ValueError("MNE library is required to process EDF files. Please install mne: pip install mne")
         try:
             self.raw = mne.io.read_raw_edf(str(self.file_path), preload=True, verbose=False)
             self.metadata = {
@@ -38,7 +30,6 @@ class EDFProcessor:
             }
         except Exception as e:
             raise ValueError(f"Failed to load EDF file: {str(e)}")
-
 
     def extract_features(self) -> Dict:
         """Extract alpha, beta, and other features from EDF."""
