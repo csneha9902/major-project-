@@ -1,7 +1,7 @@
 import GlowButton from './ui/GlowButton';
-import { Play, Square } from 'lucide-react';
+import { Play, Square, LogOut } from 'lucide-react';
 
-export default function Header({ isRunning, onStart, onStop }) {
+export default function Header({ isRunning, onStart, onStop, onLogout }) {
   return (
     <header className="header-container">
       <div className="title-section">
@@ -20,7 +20,14 @@ export default function Header({ isRunning, onStart, onStop }) {
           <Square size={14} />
           Stop
         </GlowButton>
+        {onLogout && (
+          <GlowButton variant="ghost" onClick={onLogout}>
+            <LogOut size={16} />
+            Logout
+          </GlowButton>
+        )}
       </div>
     </header>
   );
 }
+

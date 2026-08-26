@@ -1,11 +1,15 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Brain, Activity, FileText } from 'lucide-react';
+import { Brain, Activity, FileText, UserCheck, Building2, User, Mail, Lock, LogIn } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('employer'); // 'employer' | 'user'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -23,6 +27,15 @@ export default function LandingPage() {
     }
   };
 
+  const handleCredentialsSubmit = (e) => {
+    e.preventDefault();
+    setLoading(true);
+    // Proceed with authentication demo flow
+    setTimeout(() => {
+      window.location.href = `${API_BASE}/auth/login`;
+    }, 300);
+  };
+
   return (
     <>
       {/* Animated background */}
@@ -38,25 +51,107 @@ export default function LandingPage() {
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(6,214,160,0.15), rgba(139,92,246,0.15))',
-                  border: '1px solid rgba(6,214,160,0.2)',
-                  boxShadow: '0 0 30px rgba(6,214,160,0.1)',
+                  background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(21,128,61,0.15))',
+                  border: '1px solid rgba(34,197,94,0.25)',
+                  boxShadow: '0 0 30px rgba(34,197,94,0.15)',
                 }}
               >
-                <Brain size={32} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 8px rgba(6,214,160,0.5))' }} />
+                <Brain size={32} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 8px rgba(34,197,94,0.5))' }} />
               </div>
             </div>
             <h1>SNN-AI Cognitive Health & Learning Optimizer</h1>
-            <p className="landing-subtitle">Professional Portal for Healthcare Providers</p>
+            <p className="landing-subtitle">
+              {activeTab === 'employer' ? 'Professional Portal for Healthcare Providers & Employers' : 'Personal Portal for Patients & Learners'}
+            </p>
           </div>
 
           <div className="landing-card">
-            <h2>Doctor Login</h2>
-            <p className="landing-description">
-              Access advanced cognitive health analysis tools, upload patient EDF files,
-              and generate comprehensive reports with AI-powered insights.
-            </p>
+            {/* Tab Switcher Bar right above the login window */}
+            <div className="login-tab-switcher">
+              <button
+                type="button"
+                className={`login-tab-btn ${activeTab === 'employer' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('employer'); setEmail(''); setPassword(''); }}
+              >
+                <Building2 size={18} />
+                <span>Employer Login</span>
+              </button>
+              <button
+                type="button"
+                className={`login-tab-btn ${activeTab === 'user' ? 'active' : ''}`}
+                onClick={() => { setActiveTab('user'); setEmail(''); setPassword(''); }}
+              >
+                <User size={18} />
+                <span>User Login</span>
+              </button>
+            </div>
 
+            {/* Tab Content Header */}
+            {activeTab === 'employer' ? (
+              <>
+                <h2>Employer / Healthcare Login</h2>
+                <p className="landing-description">
+                  Access clinical cognitive analysis tools, upload patient EDF files,
+                  and generate comprehensive diagnostic reports with AI-powered insights.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2>User / Patient Login</h2>
+                <p className="landing-description">
+                  Access your personal cognitive wellness dashboard, view daily biometric stress trends,
+                  and receive AI-guided workload & recovery recommendations.
+                </p>
+              </>
+            )}
+
+            {/* Fillable Credentials Form */}
+            <form className="credentials-form" onSubmit={handleCredentialsSubmit}>
+              <div className="form-group">
+                <label className="form-label">
+                  <Mail size={15} />
+                  <span>{activeTab === 'employer' ? 'Work Email / Hospital ID' : 'User Email / Student ID'}</span>
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="text"
+                    className="credentials-input"
+                    placeholder={activeTab === 'employer' ? 'doctor@hospital.org or EMP-88401' : 'user@domain.com or STU-10248'}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">
+                  <Lock size={15} />
+                  <span>Password</span>
+                </label>
+                <div className="input-wrapper">
+                  <input
+                    type="password"
+                    className="credentials-input"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="btn-credentials-submit" disabled={loading}>
+                <LogIn size={18} />
+                <span>{loading ? 'Authenticating...' : (activeTab === 'employer' ? 'Sign In as Employer' : 'Sign In as User')}</span>
+              </button>
+            </form>
+
+            <div className="divider">
+              <span>OR CONTINUE WITH</span>
+            </div>
+
+            {/* OAuth and Demo Login Options */}
             <button className="btn-google-login" onClick={handleGoogleLogin}>
               <svg className="google-icon" viewBox="0 0 24 24" width="20" height="20">
                 <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -67,35 +162,36 @@ export default function LandingPage() {
               Continue with Google
             </button>
 
-            <button className="btn-demo-login" onClick={handleGoogleLogin}>
-              🧪 Continue as Demo Doctor (No OAuth Required)
+            <button className="btn-demo-login flex items-center justify-center gap-2" onClick={handleGoogleLogin}>
+              <UserCheck size={18} />
+              {activeTab === 'employer' ? 'Continue as Demo Employer (No OAuth)' : 'Continue as Demo User (No OAuth)'}
             </button>
 
             <p className="landing-note">
-              Secure OAuth authentication. Your data is protected and encrypted.
+              Secure authentication. Your data is protected and encrypted.
               <br />
-              <small className="opacity-60">Demo mode available for testing without OAuth setup.</small>
+              <small className="opacity-75">Demo mode available for testing without OAuth setup.</small>
             </p>
           </div>
 
           <div className="landing-features stagger-children">
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <Activity size={28} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 6px rgba(6,214,160,0.4))' }} />
+                <Activity size={28} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 6px rgba(34,197,94,0.4))' }} />
               </div>
               <h3>Real-time Monitoring</h3>
               <p>Live cognitive state tracking and biometric visualization</p>
             </div>
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <FileText size={28} className="text-[var(--accent-violet)]" style={{ filter: 'drop-shadow(0 0 6px rgba(139,92,246,0.4))' }} />
+                <FileText size={28} className="text-[var(--accent-violet)]" style={{ filter: 'drop-shadow(0 0 6px rgba(21,128,61,0.4))' }} />
               </div>
               <h3>EDF File Analysis</h3>
               <p>Upload and analyze patient EEG data with advanced algorithms</p>
             </div>
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <FileText size={28} className="text-[var(--accent-blue)]" style={{ filter: 'drop-shadow(0 0 6px rgba(59,130,246,0.4))' }} />
+                <FileText size={28} className="text-[var(--accent-blue)]" style={{ filter: 'drop-shadow(0 0 6px rgba(5,150,105,0.4))' }} />
               </div>
               <h3>PDF Reports</h3>
               <p>Generate comprehensive analysis reports for patient records</p>

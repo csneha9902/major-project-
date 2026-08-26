@@ -1,38 +1,41 @@
 /* ============================================
-   DESIGN TOKENS — 3D Glassmorphic Neuro Theme
+   DESIGN TOKENS — Off-White & Light-Green Theme
    ============================================ */
 
 :root {
-  /* ---- Backgrounds ---- */
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-glass: rgba(17, 24, 39, 0.6);
-  --bg-glass-strong: rgba(17, 24, 39, 0.85);
-  --bg-card-hover: rgba(17, 24, 39, 0.75);
+  /* ---- Backgrounds (Off-White & Light Ivory) ---- */
+  --bg-primary: #F4F7F2;
+  --bg-secondary: #E8EFE4;
+  --bg-glass: rgba(255, 255, 255, 0.88);
+  --bg-glass-strong: rgba(248, 252, 246, 0.96);
+  --bg-card-hover: rgba(255, 255, 255, 0.98);
 
-  /* ---- Accent Colors ---- */
-  --accent-cyan: #06d6a0;
-  --accent-violet: #8b5cf6;
-  --accent-blue: #3b82f6;
+  /* ---- Accent Colors (Vibrant & Sage Light-Greens) ---- */
+  --accent-cyan: #16A34A;
+  --accent-violet: #15803D;
+  --accent-blue: #059669;
+  --accent-green: #22C55E;
+  --accent-light-green: #4ADE80;
 
   /* ---- Semantic ---- */
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #10b981;
+  --danger: #DC2626;
+  --warning: #D97706;
+  --success: #15803D;
 
-  /* ---- Text ---- */
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* ---- Text (Light-Green & Forest Green Typography on Off-White) ---- */
+  --text-primary: #14532D;
+  --text-secondary: #166534;
+  --text-muted: #3F6212;
+  --text-highlight: #16A34A;
 
-  /* ---- Glow ---- */
-  --glow-cyan: rgba(6, 214, 160, 0.4);
-  --glow-violet: rgba(139, 92, 246, 0.4);
-  --glow-blue: rgba(59, 130, 246, 0.35);
+  /* ---- Glow (Soft Ambient Light-Green Glow) ---- */
+  --glow-cyan: rgba(34, 197, 94, 0.22);
+  --glow-violet: rgba(22, 163, 74, 0.22);
+  --glow-blue: rgba(16, 185, 129, 0.18);
 
   /* ---- Borders ---- */
-  --border-glass: rgba(148, 163, 184, 0.08);
-  --border-glow: rgba(6, 214, 160, 0.2);
+  --border-glass: rgba(34, 197, 94, 0.2);
+  --border-glow: rgba(34, 197, 94, 0.4);
 
   /* ---- Radius ---- */
   --radius-sm: 8px;
@@ -45,21 +48,19 @@
   --font-body: 'Open Sans', 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* ---- Shadows (3-layer depth) ---- */
+  /* ---- Shadows ---- */
   --shadow-card: 
-    0 4px 6px rgba(0, 0, 0, 0.3),
-    0 10px 20px rgba(0, 0, 0, 0.2),
-    0 0 40px rgba(6, 214, 160, 0.03);
+    0 4px 20px rgba(20, 83, 45, 0.06),
+    0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-card-hover: 
-    0 8px 16px rgba(0, 0, 0, 0.4),
-    0 16px 32px rgba(0, 0, 0, 0.25),
-    0 0 60px rgba(6, 214, 160, 0.08);
+    0 12px 30px rgba(20, 83, 45, 0.12),
+    0 0 25px rgba(34, 197, 94, 0.18);
   --shadow-glow-cyan:
-    0 0 15px rgba(6, 214, 160, 0.25),
-    0 0 30px rgba(6, 214, 160, 0.1);
+    0 0 15px rgba(34, 197, 94, 0.25),
+    0 0 30px rgba(34, 197, 94, 0.1);
   --shadow-glow-violet:
-    0 0 15px rgba(139, 92, 246, 0.25),
-    0 0 30px rgba(139, 92, 246, 0.1);
+    0 0 15px rgba(22, 163, 74, 0.25),
+    0 0 30px rgba(22, 163, 74, 0.1);
 
   /* ---- Transitions ---- */
   --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);

@@ -19,31 +19,31 @@ export default function FeedbackPanel() {
 
   if (!data) return (
     <div className="glass-card p-5">
-      <div className="font-heading font-semibold text-[var(--text-primary)] mb-2">Personalized Tips</div>
-      <div className="text-[var(--text-muted)] text-sm">No feedback yet.</div>
+      <div className="font-heading font-bold text-[var(--text-primary)] mb-2">Personalized Tips</div>
+      <div className="text-[var(--text-muted)] text-sm italic">No feedback available yet.</div>
     </div>
   );
 
   return (
     <div className="glass-card p-5">
-      <div className="font-heading font-semibold text-[var(--text-primary)] mb-3">Personalized Tips</div>
+      <div className="font-heading font-bold text-[var(--text-primary)] mb-3">Personalized Tips</div>
       <div className="text-xs font-mono text-[var(--text-secondary)] mb-3">
-        Summary — Accuracy: {Number.isFinite(data.summary?.accuracy) ? data.summary.accuracy.toFixed(3) : "NaN"},
-        AUC: {Number.isFinite(data.summary?.auc) ? data.summary.auc.toFixed(3) : "NaN"}
+        Summary — Accuracy: {Number.isFinite(data.summary?.accuracy) ? data.summary.accuracy.toFixed(3) : "N/A"},
+        AUC: {Number.isFinite(data.summary?.auc) ? data.summary.auc.toFixed(3) : "N/A"}
       </div>
       <ul className="space-y-2">
         {data.tips?.map((t, i) => (
-          <li key={i} className="text-sm text-[var(--text-secondary)] pl-3 border-l-2 border-[rgba(6,214,160,0.2)]">
+          <li key={i} className="text-sm text-[var(--text-secondary)] pl-3 border-l-2 border-[rgba(34,197,94,0.3)]">
             {t}
           </li>
         ))}
       </ul>
       {!!(data.actions?.length) && (
         <>
-          <div className="font-heading font-semibold text-[var(--text-primary)] mt-4 mb-2 text-sm">Next Actions</div>
+          <div className="font-heading font-bold text-[var(--text-primary)] mt-4 mb-2 text-sm">Next Actions</div>
           <ul className="space-y-2">
             {data.actions.map((a, i) => (
-              <li key={i} className="text-sm text-[var(--text-secondary)] pl-3 border-l-2 border-[rgba(139,92,246,0.2)]">
+              <li key={i} className="text-sm text-[var(--text-secondary)] pl-3 border-l-2 border-[rgba(21,128,61,0.3)]">
                 {a}
               </li>
             ))}

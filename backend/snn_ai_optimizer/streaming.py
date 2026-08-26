@@ -30,7 +30,7 @@ class DataStreamer:
     """
 
     def __init__(self):
-        self.mode: str = "Neutral"  # "Focused" | "Stressed" | "Neutral"
+        self.mode: str = "Stressed"  # Default to Stressed for exam crunch demo ("Focused" | "Stressed" | "Neutral")
         self.running: bool = True  # Controls if simulation is active
         self._latest: Optional[Dict] = None
         self._rng = random.Random(42)
@@ -75,6 +75,55 @@ class DataStreamer:
         status = dict(self._source_status)
         status.setdefault("active_source", "external" if status.get("using_external") else "internal")
         return status
+
+    def _build_dynamic_recommendation(self, state: str, alpha: float, beta: float, lf_hf: float, heart_rate: float) -> Dict:
+        base_rec = recommend_task(state)
+        
+        if state == "Stressed":
+            situation = (
+                f"High Beta wave elevation ({beta:.2f}) with suppressed Alpha waves ({alpha:.2f}) and an elevated heart rate ({heart_rate:.0f} BPM, LF/HF {lf_hf:.2f}). "
+                f"Your neural signals indicate acute cognitive stress typical during intensive exam prep crunching."
+            )
+            reasoning = "Excessive cognitive strain reduces working memory capacity and accelerates burnout. Lowering task difficulty and initiating brief relaxation intervals protects cognitive health."
+            next_steps = [
+                "Execute 3 minutes of 4-7-8 deep breathing to re-engage parasympathetic neural recovery.",
+                "Switch to Tier 1/2 practice problems to consolidate retention without cognitive overload.",
+                "Hydrate and step back from high-intensity problem solving for a 5-minute break."
+            ]
+            difficulty_tag = "Tier 1 - Reduced Load"
+        elif state == "Focused":
+            situation = (
+                f"High Alpha-to-Beta synchronization ({alpha:.2f} α / {beta:.2f} β) with steady heart rate ({heart_rate:.0f} BPM). "
+                f"Your brain is currently operating in an optimal cognitive flow state."
+            )
+            reasoning = "Peak cognitive performance window is active. Ideal timing for tackling complex problem sets or learning difficult new exam concepts."
+            next_steps = [
+                "Attempt higher-tier problem sets or complex exam chapters while focus is peak.",
+                "Maintain an uninterrupted 25-minute Pomodoro study block.",
+                "Minimize environmental distractions to preserve deep focus engagement."
+            ]
+            difficulty_tag = "Tier 4 - Deep Problem Solving"
+        else:  # Neutral
+            situation = (
+                f"Balanced baseline EEG signal distribution (Alpha {alpha:.2f}, Beta {beta:.2f}, Heart Rate {heart_rate:.0f} BPM). "
+                f"Cognitive state is calm, stable, and ready for structured study."
+            )
+            reasoning = "Neural activity is steady. Moderate difficulty practice maintains steady learning velocity without causing strain."
+            next_steps = [
+                "Review core concept summaries before advancing to timed practice sets.",
+                "Maintain steady 15-minute study intervals with brief check-ins.",
+                "Ensure ergonomic posture to maintain optimal cerebral oxygenation."
+            ]
+            difficulty_tag = "Tier 2 - Moderate Steady Load"
+
+        return {
+            **base_rec,
+            "situation": situation,
+            "reasoning": reasoning,
+            "next_steps": next_steps,
+            "difficulty_tag": difficulty_tag,
+            "state": state
+        }
 
     def _sample_alpha_beta(self) -> (float, float):
         # Create smoother, more stable patterns with controlled variation
@@ -213,16 +262,6 @@ class DataStreamer:
                 # Cognitive State inference (which now uses SNN natively)
                 state = compute_cognitive_state(alpha, beta, lf_hf)
                     
-                    
-                rec = recommend_task(state)
-                # Extend recommendation with simple reasoning per plan
-                reasoning = {
-                    "Stressed": "High stress indicators; choose an easier task to reduce cognitive load.",
-                    "Focused": "Strong focus signals; tackle higher-difficulty material.",
-                    "Neutral": "Maintain steady progress with moderate difficulty."
-                }.get(state, "Maintain steady progress with moderate difficulty.")
-                rec = {**rec, "reasoning": reasoning}
-
                 # Derive heart rate BPM with smoother, more stable variation
                 t = time.time()
                 # Use slower, smoother frequencies for more stable heart rate
@@ -246,6 +285,9 @@ class DataStreamer:
                 hr_variation = hr_combined + self._rng.gauss(0, 1.2)  # Reduced noise from 5 to 1.2
                 
                 heart_rate_bpm = max(55, min(115, base_hr + hr_variation))
+
+                rec = self._build_dynamic_recommendation(state, alpha, beta, lf_hf, heart_rate_bpm)
+
                 frame = {
                     "timestamp": ts,
                     "eeg": {"alpha": round(alpha, 3), "beta": round(beta, 3)},
