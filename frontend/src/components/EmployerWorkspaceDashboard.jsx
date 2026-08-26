@@ -1019,30 +1019,20 @@ function AddPatientModal({ isOpen, onClose, onSavePatient }) {
 export default function EmployerWorkspaceDashboard({ onLogout }) {
   const navigate = useNavigate();
   
-  // Workspace Mode: 'demo' (shows synthetic 6 patients) vs 'live' (employer dynamic entered data)
-  const [workspaceMode, setWorkspaceMode] = useState(() => localStorage.getItem('snn_workspace_mode') || 'demo');
-  const [livePatients, setLivePatients] = useState(() => {
+  // Live Workspace Patient State (persisted in localStorage)
+  const [patients, setPatients] = useState(() => {
     const saved = localStorage.getItem('snn_live_patients');
     return saved ? JSON.parse(saved) : [];
   });
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
 
-  // Sync state changes to localStorage
   useEffect(() => {
-    localStorage.setItem('snn_workspace_mode', workspaceMode);
-  }, [workspaceMode]);
-
-  useEffect(() => {
-    localStorage.setItem('snn_live_patients', JSON.stringify(livePatients));
-  }, [livePatients]);
-
-  // Derived patient list based on mode
-  const patients = workspaceMode === 'demo' ? INITIAL_PATIENTS : livePatients;
+    localStorage.setItem('snn_live_patients', JSON.stringify(patients));
+  }, [patients]);
 
   const handleSaveNewPatient = (newPatient) => {
-    const updated = [newPatient, ...livePatients];
-    setLivePatients(updated);
-    setWorkspaceMode('live');
+    const updated = [newPatient, ...patients];
+    setPatients(updated);
     setSelectedPatient(newPatient);
     setActiveTab('patient-detail');
   };
@@ -1151,14 +1141,6 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
 
           <div className="nav-section-title mt-6">QUICK ACTIONS</div>
           <button
-            className="nav-item border border-emerald-500/30 bg-emerald-800/10 text-emerald-300 font-bold hover:bg-emerald-700/30"
-            onClick={() => setIsAddPatientModalOpen(true)}
-          >
-            <Plus size={18} />
-            <span>+ Register Patient</span>
-          </button>
-
-          <button
             className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
             onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(null); }}
           >
@@ -1212,42 +1194,15 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
             </p>
           </div>
 
-          <div className="topbar-actions flex items-center gap-2">
-            {/* Workspace Data Mode Switcher */}
-            <div className="flex items-center gap-1 bg-emerald-950/40 p-1 rounded-xl border border-emerald-500/30">
-              <button
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  workspaceMode === 'demo'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-emerald-800 hover:bg-emerald-100/50'
-                }`}
-                onClick={() => setWorkspaceMode('demo')}
-                title="View synthetic demo dataset with sample patients"
-              >
-                <Sparkles size={13} />
-                <span>Demo Mode ({INITIAL_PATIENTS.length})</span>
-              </button>
-              <button
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  workspaceMode === 'live'
-                    ? 'bg-emerald-600 text-white shadow-sm'
-                    : 'text-emerald-800 hover:bg-emerald-100/50'
-                }`}
-                onClick={() => setWorkspaceMode('live')}
-                title="View live employer saved patient dataset"
-              >
-                <Database size={13} />
-                <span>Live Workspace ({livePatients.length})</span>
-              </button>
-            </div>
-
-            {/* Register Patient Button */}
+          <div className="topbar-actions flex items-center gap-2.5">
+            {/* Register Patient Button in Right Navigation Header */}
             <button
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5"
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5 border border-emerald-500/40"
               onClick={() => setIsAddPatientModalOpen(true)}
+              title="Register New Clinical Patient Record"
             >
-              <Plus size={15} />
-              <span>+ Register Patient</span>
+              <Plus size={16} />
+              <span>Register Patient</span>
             </button>
 
             {activeTab === 'patient-detail' || activeTab === 'analysis' ? (
@@ -1279,14 +1234,14 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
         {/* TAB 1: PATIENTS DIRECTORY (LIST VIEW) */}
         {activeTab === 'patients' && (
           <div className="workspace-content animate-fade-in">
-            {workspaceMode === 'live' && livePatients.length === 0 ? (
+            {patients.length === 0 ? (
               <div className="clinical-card p-10 text-center flex flex-col items-center justify-center my-6 border-2 border-dashed border-emerald-400/60 bg-emerald-50/60 rounded-2xl shadow-sm">
                 <div className="p-4 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-700 mb-4 shadow-inner">
                   <Users size={36} />
                 </div>
-                <h3 className="text-xl font-extrabold text-emerald-950 mb-1 tracking-tight">Live Employer Workspace is Empty</h3>
+                <h3 className="text-xl font-extrabold text-emerald-950 mb-1 tracking-tight">Live Workspace is Empty</h3>
                 <p className="text-xs text-emerald-800/80 max-w-md mb-6 leading-relaxed">
-                  No live patient records have been registered yet. Click below to enter your first clinical patient record with full EEG & biometric parameters, or switch to Demo Mode to explore pre-loaded sample datasets.
+                  No patient records have been registered in your clinical workspace yet. Click below or use the top right navigation button to register your first patient.
                 </p>
                 <div className="flex items-center gap-3">
                   <button
@@ -1294,14 +1249,7 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
                     onClick={() => setIsAddPatientModalOpen(true)}
                   >
                     <Plus size={16} />
-                    <span>+ Register First Patient</span>
-                  </button>
-                  <button
-                    className="px-5 py-2.5 rounded-xl text-emerald-900 font-bold bg-white border border-emerald-300 hover:bg-emerald-50 transition-all text-xs flex items-center gap-1.5 shadow-sm"
-                    onClick={() => setWorkspaceMode('demo')}
-                  >
-                    <Sparkles size={14} className="text-emerald-600" />
-                    <span>Switch to Demo Mode</span>
+                    <span>Register First Patient</span>
                   </button>
                 </div>
               </div>
