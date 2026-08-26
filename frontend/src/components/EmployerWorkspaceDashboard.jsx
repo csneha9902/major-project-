@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import FileUpload from './FileUpload';
 import {
   Users,
   Calendar as CalendarIcon,
@@ -306,13 +308,195 @@ const INITIAL_PATIENTS = [
   }
 ];
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+function EmbeddedAnalysisView({ uploadId, onBack }) {
+  const { getAuthHeaders } = useAuth();
+  const [analysisData, setAnalysisData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (uploadId) {
+      loadAnalysis(uploadId);
+    }
+  }, [uploadId]);
+
+  const loadAnalysis = async (id) => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE}/api/analysis/${id}`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to load analysis results');
+      const data = await res.json();
+      setAnalysisData(data);
+    } catch (err) {
+      setError(err.message || 'Failed to load analysis');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    if (!uploadId) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/analysis/${uploadId}/export-pdf`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || 'Failed to generate PDF');
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analysis_${uploadId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to export PDF: ' + err.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="clinical-card flex flex-col items-center justify-center p-12 text-center">
+        <Activity className="animate-spin text-emerald-600 mb-3" size={32} />
+        <h4 className="font-bold text-emerald-800 text-lg">Processing EDF Waveform & SNN Signal Decomposition...</h4>
+        <p className="text-xs text-gray-500 mt-1">Executing FFT spectral filtering and biometric neural mapping.</p>
+      </div>
+    );
+  }
+
+  if (error || !analysisData) {
+    return (
+      <div className="clinical-card p-6 bg-red-50/80 border-red-200">
+        <h4 className="font-bold text-red-800 mb-2">Analysis Failed</h4>
+        <p className="text-sm text-red-600 mb-4">{error || 'Could not load analysis details.'}</p>
+        <button className="btn-back-directory" onClick={onBack}>
+          <ArrowLeft size={16} />
+          <span>Upload Another File</span>
+        </button>
+      </div>
+    );
+  }
+
+  const timeSeries = analysisData?.time_series || [];
+  const extended = analysisData?.extended_analysis || {};
+  const patterns = extended.patterns || {};
+
+  const displayData = timeSeries.map(t => ({
+    timestamp: t.timestamp > 1000000000 ? new Date(t.timestamp * 1000).toLocaleTimeString() : `${Math.floor(t.timestamp/60)}:${Math.floor(t.timestamp%60).toString().padStart(2, '0')}`,
+    alpha: t.alpha,
+    beta: t.beta,
+    heartRate: t.heart_rate || 0,
+  }));
+
+  return (
+    <div className="embedded-analysis-view space-y-6 animate-fade-in">
+      <div className="patient-hero-card">
+        <div className="hero-main-info">
+          <div className="patient-avatar-badge">
+            <Activity size={28} className="text-emerald-600" />
+          </div>
+          <div>
+            <div className="patient-title-row">
+              <h2>{analysisData.filename || 'EDF Wave Analysis'}</h2>
+              <span className="hero-id-tag">EDF-ANALYSIS-{uploadId.slice(0, 6)}</span>
+            </div>
+            <div className="patient-demographics-row">
+              <span>Status: Completed</span>
+              <span className="dot-sep">•</span>
+              <span>Data Points: {timeSeries.length}</span>
+              <span className="dot-sep">•</span>
+              <span>Dominant State: <strong>{patterns.dominant_state || 'Neutral'}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div className="hero-actions">
+          <button className="btn-hero-action secondary" onClick={onBack}>
+            <ArrowLeft size={16} />
+            <span>Upload Another File</span>
+          </button>
+          <button className="btn-hero-action primary" onClick={handleExportPDF}>
+            <Download size={16} />
+            <span>Export Diagnostic PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="detail-grid-layout">
+        <div className="clinical-card">
+          <div className="card-header-title">
+            <Activity size={18} className="text-emerald-600" />
+            <h3>EEG Time Series Wave Decomposition</h3>
+          </div>
+          <div className="chart-container-wrapper" style={{ height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={displayData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(34,197,94,0.15)" />
+                <XAxis dataKey="timestamp" stroke="var(--text-muted)" fontSize={11} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} />
+                <Tooltip />
+                <Legend />
+                <Area type="monotone" dataKey="alpha" stroke="#059669" fill="#059669" fillOpacity={0.2} name="Alpha (Relaxation)" />
+                <Area type="monotone" dataKey="beta" stroke="#16A34A" fill="#16A34A" fillOpacity={0.3} name="Beta (Cognitive Stress)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="clinical-card">
+          <div className="card-header-title">
+            <Brain size={18} className="text-emerald-600" />
+            <h3>Pattern Detection & Diagnostic Stats</h3>
+          </div>
+          <div className="problems-bullet-list">
+            <div className="problem-bullet-item">
+              <AlertTriangle size={16} className="text-amber-500 flex-shrink-0" />
+              <div>
+                <strong>Stress Spike Events:</strong> {patterns.stress_event_count || 0} detected during recording session.
+              </div>
+            </div>
+            <div className="problem-bullet-item">
+              <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0" />
+              <div>
+                <strong>Focus Recovery Periods:</strong> {patterns.focus_period_count || 0} sustained focus intervals observed.
+              </div>
+            </div>
+            <div className="problem-bullet-item">
+              <Activity size={16} className="text-blue-500 flex-shrink-0" />
+              <div>
+                <strong>State Transitions:</strong> {patterns.transition_count || 0} frequency phase changes recorded.
+              </div>
+            </div>
+          </div>
+          {extended.insights_text && extended.insights_text.length > 0 && (
+            <div className="impression-box mt-2">
+              <h4>Automated Neuropsychiatric Insights</h4>
+              <p>{extended.insights_text.join(' ')}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function EmployerWorkspaceDashboard({ onLogout }) {
   const navigate = useNavigate();
   const [patients, setPatients] = useState(INITIAL_PATIENTS);
-  const [activeTab, setActiveTab] = useState('patients'); // 'patients' | 'calendar' | 'patient-detail'
+  const [activeTab, setActiveTab] = useState('patients'); // 'patients' | 'calendar' | 'patient-detail' | 'analysis'
   const [searchQuery, setSearchQuery] = useState('');
   const [filterState, setFilterState] = useState('ALL'); // 'ALL' | 'Stressed' | 'Focused' | 'Neutral'
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedAnalysisUploadId, setSelectedAnalysisUploadId] = useState(null);
 
   // Calendar State
   const [todayDate] = useState(() => new Date(2026, 7, 26)); // Fixed anchor date Aug 26, 2026
@@ -390,12 +574,11 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
           </button>
 
           <button
-            className="nav-item"
-            onClick={() => navigate('/analysis')}
+            className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(null); }}
           >
             <Activity size={18} />
             <span>EDF Wave Analysis</span>
-            <ArrowUpRight size={14} className="ml-auto opacity-60" />
           </button>
 
           {activeTab === 'patient-detail' && selectedPatient && (
@@ -413,8 +596,8 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
 
           <div className="nav-section-title mt-6">QUICK ACTIONS</div>
           <button
-            className="nav-item text-emerald-400"
-            onClick={() => navigate('/analysis')}
+            className={`nav-item text-emerald-400 ${activeTab === 'analysis' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(null); }}
           >
             <Plus size={18} />
             <span>Upload New EDF File</span>
@@ -456,19 +639,21 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
               {activeTab === 'patients' && 'Patients Directory & SNN Monitoring'}
               {activeTab === 'calendar' && 'Clinical Calendar & Patient Schedule'}
               {activeTab === 'patient-detail' && 'Psychiatric Clinical Assessment & Patient Record'}
+              {activeTab === 'analysis' && 'File Analysis & EDF Wave Processing'}
             </h2>
             <p className="topbar-subtitle">
               {activeTab === 'patients' && 'Manage patient neurological records, EDF EEG analyses, and SNN stress scores'}
               {activeTab === 'calendar' && 'Select dates to view scheduled patient EEG sessions and diagnostic logs'}
               {activeTab === 'patient-detail' && selectedPatient && `Comprehensive neurological profile, check-up issues, EEG graphs, and session logs for ${selectedPatient.name}`}
+              {activeTab === 'analysis' && 'Upload raw EDF or CSV files to execute SNN wave decomposition, FFT spectral analysis, and generate psychiatric diagnostic reports'}
             </p>
           </div>
 
           <div className="topbar-actions">
-            {activeTab === 'patient-detail' ? (
+            {activeTab === 'patient-detail' || activeTab === 'analysis' ? (
               <button
                 className="btn-back-directory"
-                onClick={() => setActiveTab('patients')}
+                onClick={() => { setActiveTab('patients'); setSelectedPatient(null); setSelectedAnalysisUploadId(null); }}
               >
                 <ArrowLeft size={16} />
                 <span>Back to Patients Directory</span>
@@ -814,7 +999,7 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
 
                 <button
                   className="btn-hero-action secondary"
-                  onClick={() => navigate('/analysis')}
+                  onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(null); }}
                 >
                   <Activity size={16} />
                   <span>Launch EDF Wave Analysis</span>
@@ -1066,7 +1251,7 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
                             <div className="actions-cell">
                               <button
                                 className="btn-action-view"
-                                onClick={() => navigate('/analysis')}
+                                onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(ses.edfFile || null); }}
                                 title="Open EDF Waveform in Analyzer"
                               >
                                 <Activity size={14} />
@@ -1087,6 +1272,22 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
                 </table>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* TAB 4: FILE ANALYSIS SCREEN */}
+        {activeTab === 'analysis' && (
+          <div className="workspace-content animate-fade-in">
+            {selectedAnalysisUploadId ? (
+              <EmbeddedAnalysisView
+                uploadId={selectedAnalysisUploadId}
+                onBack={() => setSelectedAnalysisUploadId(null)}
+              />
+            ) : (
+              <FileUpload
+                onUploadSuccess={(uploadId) => setSelectedAnalysisUploadId(uploadId)}
+              />
+            )}
           </div>
         )}
       </main>
