@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import AnalysisView from "./pages/AnalysisView";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AuthCallback from "./pages/AuthCallback";
+import EmployerWorkspaceDashboard from "./components/EmployerWorkspaceDashboard";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
@@ -16,6 +17,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+          <Route path="/demo" element={<EmployerWorkspaceDashboard isDemo={true} onLogout={() => window.location.href = '/'} />} />
           <Route
             path="/dashboard"
             element={

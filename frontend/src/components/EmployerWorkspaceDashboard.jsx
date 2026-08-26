@@ -1016,23 +1016,33 @@ function AddPatientModal({ isOpen, onClose, onSavePatient }) {
   );
 }
 
-export default function EmployerWorkspaceDashboard({ onLogout }) {
+export default function EmployerWorkspaceDashboard({ onLogout, isDemo = false }) {
   const navigate = useNavigate();
   
   // Live Workspace Patient State (persisted in localStorage)
-  const [patients, setPatients] = useState(() => {
+  const [livePatients, setLivePatients] = useState(() => {
     const saved = localStorage.getItem('snn_live_patients');
     return saved ? JSON.parse(saved) : [];
   });
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('snn_live_patients', JSON.stringify(patients));
-  }, [patients]);
+    if (!isDemo) {
+      localStorage.setItem('snn_live_patients', JSON.stringify(livePatients));
+    }
+  }, [livePatients, isDemo]);
+
+  // Isolate Demo Mode dataset from Live Workspace dataset
+  const patients = isDemo ? INITIAL_PATIENTS : livePatients;
 
   const handleSaveNewPatient = (newPatient) => {
-    const updated = [newPatient, ...patients];
-    setPatients(updated);
+    if (isDemo) {
+      setSelectedPatient(newPatient);
+      setActiveTab('patient-detail');
+      return;
+    }
+    const updated = [newPatient, ...livePatients];
+    setLivePatients(updated);
     setSelectedPatient(newPatient);
     setActiveTab('patient-detail');
   };
@@ -1195,6 +1205,13 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
           </div>
 
           <div className="topbar-actions flex items-center gap-2.5">
+            {isDemo && (
+              <span className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1.5">
+                <Sparkles size={14} className="text-amber-400" />
+                <span>Demo Version Preview</span>
+              </span>
+            )}
+
             {/* Register Patient Button in Right Navigation Header */}
             <button
               className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5 border border-emerald-500/40"
@@ -1226,7 +1243,7 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
 
             <button className="topbar-logout-btn" onClick={onLogout}>
               <LogOut size={16} />
-              <span>Logout</span>
+              <span>{isDemo ? 'Exit Demo' : 'Logout'}</span>
             </button>
           </div>
         </header>
