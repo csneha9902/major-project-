@@ -1279,9 +1279,6 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
               </div>
             </div>
 
-            {/* AI Dynamic Neuro-Clinical Recommendation Engine Window */}
-            <ClinicalRecommendationEngine data={selectedPatient} />
-
             {/* Two Column Grid: Left Checkup Problems & Psychiatrist Report, Right Graphs */}
             <div className="detail-grid-layout">
               {/* Left Column: Problems Facing & Psychiatric Assessment */}
@@ -1433,6 +1430,9 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
                 </div>
               </div>
             </div>
+
+            {/* AI Dynamic Neuro-Clinical Recommendation Engine Window (Placed after basic details & graphs, before session logs) */}
+            <ClinicalRecommendationEngine data={selectedPatient} />
 
             {/* Bottom Section: Recorded Session Logs Audit Table */}
             <div className="recorded-sessions-card mt-6">
