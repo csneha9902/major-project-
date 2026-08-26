@@ -596,7 +596,7 @@ export default function EmployerWorkspaceDashboard({ onLogout }) {
 
           <div className="nav-section-title mt-6">QUICK ACTIONS</div>
           <button
-            className={`nav-item text-emerald-400 ${activeTab === 'analysis' ? 'active' : ''}`}
+            className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
             onClick={() => { setActiveTab('analysis'); setSelectedAnalysisUploadId(null); }}
           >
             <Plus size={18} />
