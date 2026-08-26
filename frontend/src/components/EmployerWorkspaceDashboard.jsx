@@ -1108,6 +1108,17 @@ export default function EmployerWorkspaceDashboard({ onLogout, isDemo = false })
 
         <nav className="sidebar-nav">
           <div className="nav-section-title">MAIN NAVIGATION</div>
+          {!isDemo && (
+            <button
+              className="nav-item border border-emerald-500/30 bg-emerald-800/10 text-emerald-300 font-bold hover:bg-emerald-700/30 transition-all mb-1"
+              onClick={() => setIsAddPatientModalOpen(true)}
+              title="Register New Clinical Patient Record"
+            >
+              <Plus size={18} className="text-emerald-400" />
+              <span>+ Register Patient</span>
+            </button>
+          )}
+
           <button
             className={`nav-item ${activeTab === 'patients' || activeTab === 'patient-detail' ? 'active' : ''}`}
             onClick={() => { setActiveTab('patients'); setSelectedPatient(null); }}
@@ -1210,18 +1221,6 @@ export default function EmployerWorkspaceDashboard({ onLogout, isDemo = false })
                 <Sparkles size={14} className="text-amber-400" />
                 <span>Demo Version Preview</span>
               </span>
-            )}
-
-            {/* Register Patient Button (Available in Live Working Space only) */}
-            {!isDemo && (
-              <button
-                className="px-3.5 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white shadow-md transition-all flex items-center gap-1.5 border border-emerald-500/40"
-                onClick={() => setIsAddPatientModalOpen(true)}
-                title="Register New Clinical Patient Record"
-              >
-                <Plus size={16} />
-                <span>Register Patient</span>
-              </button>
             )}
 
             {activeTab === 'patient-detail' || activeTab === 'analysis' ? (
