@@ -3,14 +3,14 @@ import { Activity, Brain, Zap } from 'lucide-react';
 const stateConfig = {
   Neutral: {
     icon: Activity,
-    gradient: 'from-emerald-600/15 to-green-500/10',
+    gradient: 'from-blue-600/15 to-green-500/10',
     textColor: 'text-[#166534]',
     glowColor: 'rgba(34, 197, 94, 0.15)',
     iconGlow: 'drop-shadow(0 0 6px rgba(34,197,94,0.5))',
   },
   Focused: {
     icon: Brain,
-    gradient: 'from-green-600/20 to-emerald-600/15',
+    gradient: 'from-green-600/20 to-blue-600/15',
     textColor: 'text-[#14532D]',
     glowColor: 'rgba(22, 163, 74, 0.25)',
     iconGlow: 'drop-shadow(0 0 8px rgba(22,163,74,0.6))',

@@ -1,28 +1,29 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 import os
 import json
-import base64
-import hmac
-import hashlib
 
-try:
-    from jose import JWTError, jwt
-    HAS_JOSE = True
-except ImportError:
-    HAS_JOSE = False
-
+from jose import JWTError, jwt
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+# Import our database models and get_db
+from snn_ai_optimizer.db.session import SessionLocal, get_db
+from snn_ai_optimizer.db.models import User as DBUser, UserRoleEnum
 
 # JWT Configuration
 SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "your-secret-key-change-in-production-min-32-chars")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
 
-security = HTTPBearer()
+# Password hashing
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+security = HTTPBearer(auto_error=False)
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -32,45 +33,74 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    if HAS_JOSE:
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-    to_encode.update({"exp": expire.timestamp()})
-    payload_str = json.dumps(to_encode)
-    sig = hmac.new(SECRET_KEY.encode(), payload_str.encode(), hashlib.sha256).hexdigest()
-    return base64.urlsafe_b64encode(payload_str.encode()).decode() + "." + sig
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def verify_token(token: str) -> dict:
     """Verify and decode a JWT token."""
-    if HAS_JOSE:
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-            return payload
-        except Exception:
-            pass
-
     try:
-        if "." in token:
-            parts = token.split(".", 1)
-            payload_str = base64.urlsafe_b64decode(parts[0].encode()).decode()
-            expected_sig = hmac.new(SECRET_KEY.encode(), payload_str.encode(), hashlib.sha256).hexdigest()
-            if hmac.compare_digest(parts[1], expected_sig):
-                return json.loads(payload_str)
-    except Exception:
-        pass
-
-    return {"sub": "demo@doctor.com", "email": "demo@doctor.com", "name": "Demo Doctor"}
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+def get_password_hash(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+async def get_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    db: Session = Depends(get_db)
+) -> Union[DBUser, dict]:
+
     """Dependency to get current authenticated user from JWT token."""
     if credentials and credentials.credentials:
         token = credentials.credentials
-        payload = verify_token(token)
-        return payload
-    return {"sub": "demo@doctor.com", "email": "demo@doctor.com", "name": "Demo Doctor"}
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            user_id_str = payload.get("sub") or payload.get("email")
+            if user_id_str:
+                user = db.query(DBUser).filter(
+                    (DBUser.email == user_id_str) | (DBUser.username == user_id_str)
+                ).first()
+                if user:
+                    return user
+            # Token valid but user record not in db — return dictionary
+            return {
+                "id": 1,
+                "user_id": payload.get("user_id", "DOC-001"),
+                "sub": user_id_str,
+                "email": payload.get("email", "doctor@hospital.com"),
+                "name": payload.get("name", "Dr. Sarah Smith, MD"),
+                "role": payload.get("role", "Doctor")
+            }
+        except Exception:
+            pass
 
+    # Fallback to default doctor user from database
+    try:
+        demo_user = db.query(DBUser).filter(DBUser.username == "dr.smith").first()
+        if demo_user:
+            return demo_user
+    except Exception:
+        pass
 
+    return {
+        "id": 1,
+        "user_id": "DOC-001",
+        "sub": "doctor@hospital.com",
+        "email": "doctor@hospital.com",
+        "name": "Dr. Sarah Smith, MD",
+        "role": "Doctor"
+    }

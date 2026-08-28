@@ -13,6 +13,12 @@ setup(
         "pandas",
         "scikit-learn",
         "torch",
+        "sqlalchemy",
+        "psycopg2-binary",
+        "alembic",
+        "python-jose[cryptography]",
+        "passlib",
+        "python-multipart",
     ],
     entry_points={
         "console_scripts": [

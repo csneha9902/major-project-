@@ -3,7 +3,7 @@ import { Upload, File, X, Sparkles, Activity } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import GlowButton from './ui/GlowButton';
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export default function FileUpload({ onUploadSuccess }) {
   const [dragging, setDragging] = useState(false);
@@ -161,7 +161,7 @@ export default function FileUpload({ onUploadSuccess }) {
       {/* Synthetic Demo Datasets Section */}
       <div className="demo-samples-section mt-6 pt-6 border-t border-[var(--border-color)]">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="text-emerald-600" size={18} />
+          <Sparkles className="text-blue-600" size={18} />
           <h4 className="font-heading font-semibold text-sm text-[var(--text-primary)]">
             Explore Pre-configured Demo Datasets
           </h4>
@@ -174,15 +174,15 @@ export default function FileUpload({ onUploadSuccess }) {
           {demoSamples.map((sample) => (
             <div
               key={sample.upload_id}
-              className="demo-sample-card p-3 rounded-lg border border-[var(--border-color)] bg-[var(--bg-glass)] hover:border-emerald-500/50 transition-all flex flex-col justify-between"
+              className="demo-sample-card p-3 rounded-lg border border-[var(--border-color)] bg-[var(--bg-glass)] hover:border-blue-500/50 transition-all flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-bold text-emerald-700 font-mono flex items-center gap-1">
+                  <span className="text-xs font-bold text-blue-700 font-mono flex items-center gap-1">
                     <Activity size={12} />
                     {sample.filename}
                   </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-medium">
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 font-medium">
                     {sample.duration}s
                   </span>
                 </div>

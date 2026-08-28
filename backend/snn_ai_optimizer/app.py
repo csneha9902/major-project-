@@ -7,7 +7,8 @@ import datetime, json, asyncio, os, random, time, uuid, shutil
 
 # Auth imports - with error handling
 try:
-    from snn_ai_optimizer.auth import get_oauth_router, get_current_user
+    from snn_ai_optimizer.auth import get_oauth_router
+    from snn_ai_optimizer.auth.jwt_utils import get_current_user
     AUTH_AVAILABLE = True
 except Exception as e:
     print(f"Warning: Auth module import failed: {e}")
@@ -41,6 +42,14 @@ from snn_ai_optimizer.export import generate_pdf_report
 
 # ------------------ FastAPI App ------------------
 app = FastAPI()
+
+# Initialize database
+try:
+    from snn_ai_optimizer.db.init_db import init_db
+    init_db()
+    print("Database initialized successfully")
+except Exception as e:
+    print(f"Warning: Database initialization failed: {e}")
 
 # Include OAuth router (with comprehensive error handling)
 try:
@@ -102,6 +111,38 @@ try:
 except Exception as e:
     print(f"Warning: SNN module import failed: {e}")
 
+# Include Patient Router (mounted under /api so frontend /api/patients/ calls work)
+try:
+    from snn_ai_optimizer.patient.router import router as patient_router
+    app.include_router(patient_router, prefix="/api")
+    print("Patient router included successfully at /api/patients/")
+except Exception as e:
+    print(f"Warning: Patient router import failed: {e}")
+
+# Include Appointment Router
+try:
+    from snn_ai_optimizer.appointment.router import router as appointment_router
+    app.include_router(appointment_router, prefix="/api")
+    print("Appointment router included successfully at /api/appointments/")
+except Exception as e:
+    print(f"Warning: Appointment router import failed: {e}")
+
+# Include Collaboration Router
+try:
+    from snn_ai_optimizer.collaboration.router import router as collaboration_router
+    app.include_router(collaboration_router, prefix="/api")
+    print("Collaboration router included successfully at /api/collaboration/")
+except Exception as e:
+    print(f"Warning: Collaboration router import failed: {e}")
+
+# Include Mail Router
+try:
+    from snn_ai_optimizer.mail.router import router as mail_router
+    app.include_router(mail_router, prefix="/api")
+    print("Mail router included successfully at /api/mail/")
+except Exception as e:
+    print(f"Warning: Mail router import failed: {e}")
+
 # CORS (allow frontend at :5173 to access backend)
 ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
@@ -154,7 +195,47 @@ async def mock_eeg(mode: str = "Neutral"):
 async def root():
     return {"message": "SNN-AI Optimizer Backend running"}
 
-# /auth/me endpoint is handled by the auth router, no need for duplicate here
+
+@app.get("/auth/me")
+async def get_me_endpoint(request: Request):
+    """
+    Returns the currently authenticated user from JWT Bearer token.
+    Falls back to demo user if no valid token is provided.
+    """
+    from snn_ai_optimizer.auth.jwt_utils import verify_token
+    from snn_ai_optimizer.db.session import SessionLocal
+    from snn_ai_optimizer.db.models import User as DBUser
+
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Not authenticated"}
+        )
+
+    token = auth_header.split(" ", 1)[1]
+    try:
+        payload = verify_token(token)
+        email = payload.get("sub") or payload.get("email")
+        db = SessionLocal()
+        try:
+            user = db.query(DBUser).filter(DBUser.email == email).first()
+        finally:
+            db.close()
+
+        if user:
+            return {
+                "sub": user.email,
+                "email": user.email,
+                "name": user.full_name,
+                "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+                "user_id": user.user_id,
+                "username": user.username,
+            }
+        # Token valid but user not in DB — return payload directly
+        return payload
+    except Exception:
+        return JSONResponse(status_code=401, content={"detail": "Invalid or expired token"})
 
 @app.get("/results/metrics")
 async def get_metrics():
@@ -422,11 +503,18 @@ async def get_current_user_optional(credentials: HTTPAuthorizationCredentials = 
         try:
             if AUTH_AVAILABLE:
                 from snn_ai_optimizer.auth.jwt_utils import verify_token
-                return verify_token(credentials.credentials)
+                payload = verify_token(credentials.credentials)
+                # Return a dict similar to what get_current_user would return for backward compatibility
+                return {
+                    "sub": payload.get("sub", "demo@doctor.com"),
+                    "email": payload.get("email", "demo@doctor.com"),
+                    "name": payload.get("name", "Demo Doctor"),
+                    "role": payload.get("role", "doctor")
+                }
         except Exception:
             pass
     # Fallback to demo user if no credentials or validation fails
-    return {"sub": "demo@doctor.com", "email": "demo@doctor.com", "name": "Demo Doctor"}
+    return {"sub": "demo@doctor.com", "email": "demo@doctor.com", "name": "Demo Doctor", "role": "doctor"}
 
 DEMO_MANIFEST_PATH = Path("results/demo_samples/manifest.json")
 
@@ -457,21 +545,21 @@ async def upload_file(
     is_csv = lower_name.endswith(".csv")
     if not (is_edf or is_csv):
         raise HTTPException(status_code=400, detail="Only EDF or CSV files are supported")
-    
+
     # Check file size (200MB limit)
     MAX_SIZE = 200 * 1024 * 1024
     file_content = await file.read()
     if len(file_content) > MAX_SIZE:
         raise HTTPException(status_code=400, detail="File too large. Maximum 200MB.")
-    
+
     upload_id = str(uuid.uuid4())
     upload_path = UPLOAD_DIR / f"{upload_id}_{file.filename}"
-    
+
     try:
         # Save uploaded file
         with open(upload_path, "wb") as f:
             f.write(file_content)
-        
+
         # Process according to type
         if is_edf:
             analysis_data = process_edf_file(upload_path, upload_id)
@@ -479,21 +567,24 @@ async def upload_file(
             if not CSV_AVAILABLE:
                 raise HTTPException(status_code=500, detail="CSV processing not available on server")
             analysis_data = process_csv_file(upload_path, upload_id)
+
+        # Add metadata
         analysis_data["uploaded_by"] = current_user.get("email", "unknown")
+        analysis_data["user_id"] = current_user.get("user_id", "unknown") if isinstance(current_user, dict) else getattr(current_user, 'user_id', 'unknown')
         analysis_data["filename"] = file.filename
         analysis_data["uploaded_at"] = datetime.datetime.now().isoformat()
-        
+
         # Save analysis results
         analysis_file = ANALYSIS_STORE / f"{upload_id}.json"
         with open(analysis_file, "w", encoding="utf-8") as f:
             json.dump(analysis_data, f, indent=2)
-        
+
         # Clean up uploaded file after processing
         try:
             upload_path.unlink()
         except Exception:
             pass
-        
+
         return {
             "upload_id": upload_id,
             "filename": file.filename,
@@ -501,7 +592,7 @@ async def upload_file(
             "n_samples": analysis_data["features"]["n_samples"],
             "duration": analysis_data["metadata"]["duration"],
         }
-    
+
     except Exception as e:
         # Clean up on error
         try:
@@ -522,6 +613,19 @@ async def get_analysis(
     """Get extended analysis for uploaded file (protected endpoint)."""
     try:
         analysis_result = analyze_uploaded_data(upload_id)
+        # Add user info to the result for tracking
+        if isinstance(current_user, dict):
+            analysis_result["accessed_by"] = {
+                "user_id": current_user.get("user_id", "unknown"),
+                "email": current_user.get("email", "unknown"),
+                "role": current_user.get("role", "unknown")
+            }
+        else:
+            analysis_result["accessed_by"] = {
+                "user_id": getattr(current_user, 'user_id', 'unknown'),
+                "email": getattr(current_user, 'email', 'unknown'),
+                "role": getattr(current_user, 'role', 'unknown')
+            }
         return analysis_result
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Analysis not found")
@@ -536,8 +640,21 @@ async def export_pdf(
     """Export analysis as PDF (protected endpoint)."""
     try:
         analysis_result = analyze_uploaded_data(upload_id)
+        # Add user info to the result for tracking
+        if isinstance(current_user, dict):
+            analysis_result["accessed_by"] = {
+                "user_id": current_user.get("user_id", "unknown"),
+                "email": current_user.get("email", "unknown"),
+                "role": current_user.get("role", "unknown")
+            }
+        else:
+            analysis_result["accessed_by"] = {
+                "user_id": getattr(current_user, 'user_id', 'unknown'),
+                "email": getattr(current_user, 'email', 'unknown'),
+                "role": getattr(current_user, 'role', 'unknown')
+            }
         pdf_bytes = generate_pdf_report(analysis_result)
-        
+
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",

@@ -1,7 +1,5 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const AuthContext = createContext(null);
 
@@ -10,19 +8,9 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Check for token in localStorage
-    const token = localStorage.getItem('auth_token');
-    if (token) {
-      verifyToken(token);
-    } else {
-      setLoading(false);
-    }
-  }, []);
-
-  const verifyToken = async (token) => {
+  const verifyToken = useCallback(async (token) => {
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
+      const res = await fetch(`/auth/me`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -41,24 +29,36 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const login = (token) => {
+  useEffect(() => {
+    // Check for token in localStorage
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      verifyToken(token);
+    } else {
+      setLoading(false);
+    }
+  }, [verifyToken]);
+
+  const login = useCallback((token) => {
     localStorage.setItem('auth_token', token);
     verifyToken(token);
     navigate('/dashboard');
-  };
+  }, [navigate, verifyToken]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_backend_role');
     setUser(null);
     navigate('/');
-  };
+  }, [navigate]);
 
-  const getAuthHeaders = () => {
+  const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem('auth_token');
     return token ? { 'Authorization': `Bearer ${token}` } : {};
-  };
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, getAuthHeaders }}>

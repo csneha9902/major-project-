@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import CurrentStateCard from "../components/CurrentStateCard";
@@ -7,125 +7,295 @@ import TaskRecommendationCard from "../components/TaskRecommendationCard";
 import WellnessTipsPanel from "../components/WellnessTipsPanel";
 import SessionSummaryPanel from "../components/SessionSummaryPanel";
 import ProgressCalendar from "../components/ProgressCalendar";
+import UserOnboardingHub from "../components/UserOnboardingHub";
 import EmployerWorkspaceDashboard from "../components/EmployerWorkspaceDashboard";
 import { useDataStream } from "../hooks/useDataStream";
 import { useAuth } from "../context/AuthContext";
 import GlowButton from "../components/ui/GlowButton";
+import EmailReportModal from "../components/EmailReportModal";
+import { Download, Sparkles, Activity, FileText, CheckCircle2, RotateCcw, Mail } from "lucide-react";
 import "../App.css";
 
-const generateCognitiveStressHistory = () => {
-  const points = [];
-  const now = Date.now();
-  for (let i = 25; i >= 0; i--) {
-    const timeSec = new Date(now - i * 3000);
-    const timestampStr = timeSec.toLocaleTimeString();
-    
-    // High SNN Stress Spike: High Beta, Low Alpha, Elevated Heart Rate
-    const beta = Number((1.08 + 0.12 * Math.sin(i * 0.4) + (Math.random() * 0.08 - 0.04)).toFixed(2));
-    const alpha = Number((0.38 + 0.05 * Math.cos(i * 0.3) + (Math.random() * 0.04 - 0.02)).toFixed(2));
-    const heartRate = Math.round(98 + 6 * Math.sin(i * 0.5) + (Math.random() * 4 - 2));
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
-    points.push({
-      timestamp: timestampStr,
-      alpha,
-      beta,
-      heartRate,
-      cognitive_state: "Stressed",
-      recommendation: {
-        task: "Take 5-min Breathing Break",
-        difficulty: 1,
-        reasoning: "High SNN cognitive stress detected. High Beta load requires short recovery break."
-      }
-    });
+const formatTimestamp = (ts) => {
+  if (!ts) return "00:00";
+  if (ts > 1000000000) {
+    return new Date(ts * 1000).toLocaleTimeString();
   }
-  return points;
+  const minutes = Math.floor(ts / 60);
+  const seconds = Math.floor(ts % 60);
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const getRecommendationForState = (state, beta = 1.0, alpha = 0.5) => {
+  if (state === 'Stressed' || (beta - alpha > 0.4)) {
+    return {
+      task: "Take 5-min Breathing Break & Lower Task Difficulty",
+      difficulty: 1,
+      reasoning: "High SNN cognitive stress detected: elevated beta frequency. Lowering workload prevents mental exhaustion."
+    };
+  } else if (state === 'Focused' || (alpha - beta > 0.1)) {
+    return {
+      task: "Deep Concentration: Attempt High-Complexity Problems",
+      difficulty: 4,
+      reasoning: "Optimal neural synchronization detected: dominant alpha rhythm indicates high focus and readiness for complex learning."
+    };
+  }
+  return {
+    task: "Maintain Steady Pace: Review Chapter 3 Concept Check",
+    difficulty: 3,
+    reasoning: "Balanced baseline cognitive state: steady alpha-to-beta ratio maintains optimal sustained attention."
+  };
 };
 
 export default function Dashboard() {
-  const { frame, running, startSimulation, stopSimulation, currentMode, changeMode } = useDataStream();
-  const { user, logout } = useAuth();
+  const { frame, running, startSimulation, stopSimulation } = useDataStream();
+  const { user, logout, getAuthHeaders } = useAuth();
   const navigate = useNavigate();
 
   const userRole = localStorage.getItem('user_role') || 'employer';
 
-  const [chartData, setChartData] = useState(() => generateCognitiveStressHistory());
+  // Data Source mode: 'none' | 'file' | 'stream'
+  const [dataSource, setDataSource] = useState('none');
+  const [uploadId, setUploadId] = useState(null);
+  const [sourceMetadata, setSourceMetadata] = useState(null);
+  const [analysisData, setAnalysisData] = useState(null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+
+  // Active chart & state data
+  const [chartData, setChartData] = useState([]);
   const [hoveredState, setHoveredState] = useState(null);
   const [hoveredRecommendation, setHoveredRecommendation] = useState(null);
 
+  // If role is employer, render the clinical workspace
+  if (userRole === 'employer') {
+    return <EmployerWorkspaceDashboard onLogout={logout} />;
+  }
+
+  // Load uploaded file analysis
+  const loadAnalysis = async (id) => {
+    setLoadingAnalysis(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/analysis/${id}`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to load file analysis');
+      const data = await res.json();
+      setAnalysisData(data);
+      setUploadId(id);
+      setSourceMetadata({
+        filename: data.filename || 'EEG_Recording.edf',
+        duration: data.metadata?.duration || (data.time_series ? data.time_series.length : 45),
+        uploadId: id
+      });
+
+      // Format time series into chart data
+      if (data.time_series && data.time_series.length > 0) {
+        const points = data.time_series.map((t) => ({
+          timestamp: formatTimestamp(t.timestamp),
+          alpha: Number(t.alpha.toFixed(2)),
+          beta: Number(t.beta.toFixed(2)),
+          heartRate: Math.round(t.heart_rate || 75),
+          cognitive_state: t.cognitive_state || 'Neutral',
+          recommendation: getRecommendationForState(t.cognitive_state, t.beta, t.alpha)
+        }));
+        setChartData(points);
+      }
+      setDataSource('file');
+    } catch (err) {
+      console.error("Error loading analysis:", err);
+      alert("Could not load analysis: " + err.message);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
+
+  // Handle upload success from onboarding hub
+  const handleUploadSuccess = (newUploadId) => {
+    loadAnalysis(newUploadId);
+  };
+
+  // Handle start live stream from onboarding hub
+  const handleStartLiveStream = () => {
+    setDataSource('stream');
+    setChartData([]);
+    setSourceMetadata({ filename: 'Live Wireless Telemetry Feed', duration: 'Real-Time' });
+    startSimulation();
+  };
+
+  // Switch back to onboarding hub
+  const handleSwitchSource = () => {
+    if (running) {
+      stopSimulation();
+    }
+    setDataSource('none');
+    setUploadId(null);
+    setSourceMetadata(null);
+    setAnalysisData(null);
+    setChartData([]);
+  };
+
+  // Live Stream frame updates
   useEffect(() => {
-    if (frame && running) {
+    if (dataSource === 'stream' && frame && running) {
       setChartData(prev => {
         const newRow = {
           timestamp: new Date(frame.timestamp * 1000).toLocaleTimeString(),
-          alpha: frame?.eeg?.alpha ?? 0.38,
-          beta: frame?.eeg?.beta ?? 1.08,
-          heartRate: frame?.hrv?.heart_rate_bpm ?? 98,
-          cognitive_state: frame?.cognitive_state || "Stressed",
-          recommendation: frame?.recommendation,
+          alpha: frame?.eeg?.alpha ?? 0.5,
+          beta: frame?.eeg?.beta ?? 0.5,
+          heartRate: frame?.hrv?.heart_rate_bpm ?? 75,
+          cognitive_state: frame?.cognitive_state || "Neutral",
+          recommendation: frame?.recommendation || getRecommendationForState(frame?.cognitive_state),
         };
         const next = [...prev, newRow];
         return next.slice(-60);
       });
     }
-  }, [frame, running]);
+  }, [frame, running, dataSource]);
 
-  useEffect(() => {
-    if (!running) {
-      setChartData(generateCognitiveStressHistory());
+  // Export PDF handler
+  const handleExportPDF = async () => {
+    if (!uploadId) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/analysis/${uploadId}/export-pdf`, {
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) throw new Error('Failed to generate PDF');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `cognitive_analysis_${uploadId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to export PDF: ' + err.message);
     }
-  }, [running]);
+  };
 
-  const currentMetrics = frame ? {
-    alpha: frame?.eeg?.alpha ?? 0.38,
-    beta: frame?.eeg?.beta ?? 1.08,
-    heartRate: frame?.hrv?.heart_rate_bpm ?? 98,
+  // Calculate current live/file metrics
+  const lastPoint = chartData[chartData.length - 1];
+  const currentMetrics = dataSource === 'stream' && frame ? {
+    alpha: frame?.eeg?.alpha ?? 0.5,
+    beta: frame?.eeg?.beta ?? 0.5,
+    heartRate: frame?.hrv?.heart_rate_bpm ?? 75,
+  } : lastPoint ? {
+    alpha: lastPoint.alpha,
+    beta: lastPoint.beta,
+    heartRate: lastPoint.heartRate,
   } : {
-    alpha: chartData[chartData.length - 1]?.alpha || 0.38,
-    beta: chartData[chartData.length - 1]?.beta || 1.08,
-    heartRate: chartData[chartData.length - 1]?.heartRate || 98,
+    alpha: 0.55,
+    beta: 0.50,
+    heartRate: 72,
   };
 
-  const displayState = hoveredState || frame?.cognitive_state || 'Stressed';
-  const displayRecommendation = hoveredRecommendation || frame?.recommendation || {
-    task: "Take 5-min Breathing Break & Lower Task Difficulty",
-    difficulty: 1,
-    reasoning: "High SNN cognitive stress detected: high beta wave elevation with elevated heart rate (98 BPM). Lowering difficulty prevents neural burnout."
-  };
-
-  if (userRole === 'employer') {
-    return <EmployerWorkspaceDashboard onLogout={logout} />;
-  }
+  const dominantState = analysisData?.extended_analysis?.patterns?.dominant_state;
+  const displayState = hoveredState || (dataSource === 'stream' ? frame?.cognitive_state : dominantState) || lastPoint?.cognitive_state || 'Neutral';
+  
+  const displayRecommendation = hoveredRecommendation || 
+    (dataSource === 'stream' ? frame?.recommendation : null) || 
+    lastPoint?.recommendation || 
+    getRecommendationForState(displayState, currentMetrics.beta, currentMetrics.alpha);
 
   return (
     <div className="app-container">
-      <Header isRunning={running} onStart={startSimulation} onStop={stopSimulation} onLogout={logout} />
+      {/* Dynamic Header with Provenance Badge & Switcher */}
+      <Header 
+        isRunning={running} 
+        onStart={startSimulation} 
+        onStop={stopSimulation} 
+        onLogout={logout} 
+        dataSource={dataSource}
+        sourceMetadata={sourceMetadata}
+        onSwitchSource={handleSwitchSource}
+      />
 
-      <div className="main-content">
-        <div className="left-section">
-          <CurrentStateCard state={displayState} />
-          <BiometricTrendsChart 
-            data={chartData} 
-            currentMetrics={currentMetrics}
-            onHover={(state, recommendation) => {
-              setHoveredState(state);
-              setHoveredRecommendation(recommendation);
-            }}
-            onHoverEnd={() => {
-              setHoveredState(null);
-              setHoveredRecommendation(null);
-            }}
+      {/* STATE 1: No Data Source Selected -> Show Onboarding Hub */}
+      {dataSource === 'none' && (
+        <UserOnboardingHub 
+          onUploadSuccess={handleUploadSuccess}
+          onStartLiveStream={handleStartLiveStream}
+          loading={loadingAnalysis}
+        />
+      )}
+
+      {/* STATE 2 & 3: File or Live Stream Data Active -> Show Full Dashboard */}
+      {dataSource !== 'none' && (
+        <div className="animate-fade-in">
+          {/* File Analysis Action Banner if file is active */}
+          {dataSource === 'file' && (
+            <div className="file-active-banner p-4 rounded-xl mb-6 bg-blue-50/80 border border-blue-200 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold">
+                  <FileText size={20} />
+                </div>
+                <div>
+                  <h4 className="font-heading font-bold text-sm text-[var(--text-primary)]">
+                    Analyzing Recording: <span className="font-mono text-blue-700">{sourceMetadata?.filename}</span>
+                  </h4>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Full SNN cognitive decomposition complete • {chartData.length} samples processed
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <GlowButton variant="cyan" onClick={() => setEmailModalOpen(true)} className="text-xs py-2 px-3">
+                  <Mail size={14} />
+                  <span>Email Report</span>
+                </GlowButton>
+                <GlowButton variant="success" onClick={handleExportPDF} className="text-xs py-2 px-3">
+                  <Download size={14} />
+                  <span>Download PDF</span>
+                </GlowButton>
+                <GlowButton variant="ghost" onClick={handleSwitchSource} className="text-xs py-2 px-3">
+                  <RotateCcw size={14} />
+                  <span>Upload Different File</span>
+                </GlowButton>
+              </div>
+            </div>
+          )}
+
+          {/* Email Report Modal */}
+          <EmailReportModal
+            isOpen={emailModalOpen}
+            onClose={() => setEmailModalOpen(false)}
+            uploadId={uploadId}
+            filename={sourceMetadata?.filename}
+            defaultRecipientName={user?.name || "Patient"}
           />
-          <WellnessTipsPanel currentState={displayState} />
-        </div>
-        <div className="right-section">
-          <TaskRecommendationCard recommendation={displayRecommendation} />
-          <SessionSummaryPanel isRunning={running} />
-        </div>
-      </div>
 
-      {/* Dynamic Progress & Health Calendar Keeper */}
-      <ProgressCalendar />
+          <div className="main-content">
+            <div className="left-section">
+              <CurrentStateCard state={displayState} />
+              <BiometricTrendsChart 
+                data={chartData} 
+                currentMetrics={currentMetrics}
+                onHover={(state, recommendation) => {
+                  setHoveredState(state);
+                  setHoveredRecommendation(recommendation);
+                }}
+                onHoverEnd={() => {
+                  setHoveredState(null);
+                  setHoveredRecommendation(null);
+                }}
+              />
+              <WellnessTipsPanel currentState={displayState} />
+            </div>
+
+            <div className="right-section">
+              <TaskRecommendationCard recommendation={displayRecommendation} />
+              <SessionSummaryPanel isRunning={running} />
+            </div>
+          </div>
+
+          {/* Dynamic Progress & Health Calendar Keeper */}
+          <ProgressCalendar />
+        </div>
+      )}
     </div>
   );
 }
-

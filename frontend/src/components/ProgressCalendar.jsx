@@ -266,7 +266,7 @@ export default function ProgressCalendar() {
   const getStateColorClass = (st) => {
     switch (st) {
       case 'Stressed': return 'bg-red-500/20 text-red-700 border-red-500/40';
-      case 'Focused': return 'bg-emerald-500/20 text-emerald-700 border-emerald-500/40';
+      case 'Focused': return 'bg-blue-600/20 text-blue-700 border-blue-500/40';
       case 'Neutral': return 'bg-slate-400/20 text-slate-700 border-slate-400/40';
       case 'Upcoming': return 'bg-amber-500/20 text-amber-800 border-amber-500/40';
       default: return 'bg-slate-400/20 text-slate-700 border-slate-400/40';
@@ -276,7 +276,7 @@ export default function ProgressCalendar() {
   const getDateDotClass = (st) => {
     switch (st) {
       case 'Stressed': return 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]';
-      case 'Focused': return 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]';
+      case 'Focused': return 'bg-blue-600 shadow-[0_0_8px_rgba(0,98,255,0.6)]';
       case 'Neutral': return 'bg-slate-400';
       default: return 'bg-transparent';
     }
@@ -301,14 +301,14 @@ export default function ProgressCalendar() {
       {/* Top Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-[var(--border-subtle)]">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-emerald-50 text-[var(--accent-cyan)]">
+          <div className="p-2 rounded-xl bg-blue-50 text-[var(--accent-cyan)]">
             <CalendarIcon size={22} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="font-heading font-bold text-base text-[var(--text-primary)]">Cognitive Progress & Health Calendar</h3>
               <span 
-                className="px-2 py-0.5 text-[0.62rem] font-bold rounded-full bg-emerald-500/10 text-emerald-700 border border-emerald-500/30 flex items-center gap-1"
+                className="px-2 py-0.5 text-[0.62rem] font-bold rounded-full bg-blue-600/10 text-blue-700 border border-blue-500/30 flex items-center gap-1"
                 title="Automated 12:00 AM Midnight Rollover Active"
               >
                 <Clock size={10} className="animate-spin" style={{ animationDuration: '8s' }} /> 12 AM Rollover Active
@@ -418,15 +418,15 @@ export default function ProgressCalendar() {
                         : 'hover:bg-[var(--bg-surface)]/80 text-[var(--text-primary)] border border-transparent'
                   } ${
                     isTodayDate 
-                      ? 'border-2 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.35)] bg-emerald-50/20 font-black' 
+                      ? 'border-2 border-blue-500 shadow-[0_0_12px_rgba(0,98,255,0.35)] bg-blue-50/20 font-black' 
                       : ''
                   }`}
                 >
                   {/* Today Badge / Indicator */}
                   <div className="flex items-center justify-between w-full">
-                    <span className={`${isTodayDate ? 'text-emerald-700 font-black' : ''}`}>{dayNum}</span>
+                    <span className={`${isTodayDate ? 'text-blue-700 font-black' : ''}`}>{dayNum}</span>
                     {isTodayDate && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" title="Active Live Session" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping" title="Active Live Session" />
                     )}
                     {isFuture && (
                       <Lock size={10} className="text-[var(--text-muted)] opacity-70" title="Future Date (Locked)" />
@@ -450,15 +450,15 @@ export default function ProgressCalendar() {
               <span>Stressed (Red)</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.6)]" />
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-[0_0_6px_rgba(0,98,255,0.6)]" />
               <span>Focused (Green)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
               <span>Neutral (Grey)</span>
             </div>
-            <div className="flex items-center gap-1.5 font-semibold text-emerald-700">
-              <span className="w-3 h-3 rounded border-2 border-emerald-500 bg-emerald-50/40" />
+            <div className="flex items-center gap-1.5 font-semibold text-blue-700">
+              <span className="w-3 h-3 rounded border-2 border-blue-500 bg-blue-50/40" />
               <span>Current Session Outline</span>
             </div>
           </div>
@@ -497,7 +497,7 @@ export default function ProgressCalendar() {
               </div>
               <div className="p-2.5 rounded-xl bg-[var(--bg-subtle)] border border-[var(--border-subtle)]">
                 <span className="text-[0.68rem] text-[var(--text-muted)] block mb-0.5">SNN Health Score</span>
-                <span className="font-mono font-bold text-sm text-emerald-600">
+                <span className="font-mono font-bold text-sm text-blue-600">
                   {selectedLog.snnScore !== '--' ? `${selectedLog.snnScore}%` : '--'}
                 </span>
               </div>
@@ -556,8 +556,8 @@ export default function ProgressCalendar() {
                     selectedIsFuture 
                       ? 'opacity-40 cursor-not-allowed bg-[var(--bg-subtle)] text-[var(--text-muted)] border-[var(--border-subtle)]'
                       : selectedLog.state === 'Focused'
-                        ? 'bg-emerald-500 text-white border-emerald-600 shadow-sm'
-                        : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-emerald-600 border-[var(--border-subtle)]'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                        : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)] hover:text-blue-600 border-[var(--border-subtle)]'
                   }`}
                 >
                   Focused (Green)

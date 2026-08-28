@@ -10,6 +10,7 @@ export default function LandingPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -20,20 +21,75 @@ export default function LandingPage() {
 
   const handleGoogleLogin = async () => {
     try {
-      window.location.href = `${API_BASE}/auth/login`;
+      localStorage.setItem('user_role', activeTab);
+      window.location.href = `/auth/login`;
     } catch (error) {
       console.error('Login error:', error);
       alert('Login failed. Please try again.');
     }
   };
 
-  const handleCredentialsSubmit = (e) => {
-    e.preventDefault();
+  const handleDemoLogin = async () => {
+    setError('');
     setLoading(true);
-    // Proceed with authentication demo flow
-    setTimeout(() => {
-      window.location.href = `${API_BASE}/auth/login`;
-    }, 300);
+    try {
+      const demoUser = activeTab === 'employer' ? 'dr.smith' : 'tech.jones';
+      const demoPass = activeTab === 'employer' ? 'doctor123' : 'tech123';
+      const res = await fetch('/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: demoUser, password: demoPass }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.detail || 'Demo authentication failed');
+        return;
+      }
+
+      const data = await res.json();
+      localStorage.setItem('auth_token', data.access_token);
+      const backendRole = data.user?.role || (activeTab === 'employer' ? 'Doctor' : 'Technician');
+      localStorage.setItem('user_role', activeTab);
+      localStorage.setItem('user_backend_role', backendRole);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Network error — make sure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCredentialsSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await fetch('/auth/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.detail || 'Invalid username or password');
+        return;
+      }
+
+      const data = await res.json();
+      localStorage.setItem('auth_token', data.access_token);
+      // Use the role returned from the backend, but also respect the tab
+      const backendRole = data.user?.role || 'doctor';
+      const uiRole = activeTab; // 'employer' or 'user'
+      localStorage.setItem('user_role', uiRole);
+      localStorage.setItem('user_backend_role', backendRole);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Network error — make sure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -51,12 +107,12 @@ export default function LandingPage() {
               <div
                 className="w-16 h-16 rounded-2xl flex items-center justify-center"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(34,197,94,0.15), rgba(21,128,61,0.15))',
-                  border: '1px solid rgba(34,197,94,0.25)',
-                  boxShadow: '0 0 30px rgba(34,197,94,0.15)',
+                  background: 'linear-gradient(135deg, rgba(0,98,255,0.12), rgba(0,180,216,0.12))',
+                  border: '1px solid rgba(0,98,255,0.25)',
+                  boxShadow: '0 8px 24px rgba(0,98,255,0.15)',
                 }}
               >
-                <Brain size={32} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 8px rgba(34,197,94,0.5))' }} />
+                <Brain size={34} className="text-[#0062FF]" style={{ filter: 'drop-shadow(0 2px 8px rgba(0,98,255,0.4))' }} />
               </div>
             </div>
             <h1>SNN-AI Cognitive Health & Learning Optimizer</h1>
@@ -116,7 +172,7 @@ export default function LandingPage() {
                   <input
                     type="text"
                     className="credentials-input"
-                    placeholder={activeTab === 'employer' ? 'doctor@hospital.org or EMP-88401' : 'user@domain.com or STU-10248'}
+                    placeholder={activeTab === 'employer' ? 'doctor@hospital.org or dr.smith' : 'user@domain.com or STU-10248'}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
@@ -145,6 +201,39 @@ export default function LandingPage() {
                 <LogIn size={18} />
                 <span>{loading ? 'Authenticating...' : (activeTab === 'employer' ? 'Sign In as Employer' : 'Sign In as User')}</span>
               </button>
+
+              {error && (
+                <div style={{
+                  marginTop: '0.75rem',
+                  padding: '0.6rem 1rem',
+                  borderRadius: '8px',
+                  background: 'rgba(239,68,68,0.1)',
+                  border: '1px solid rgba(239,68,68,0.3)',
+                  color: '#dc2626',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  textAlign: 'center',
+                }}>
+                  {error}
+                </div>
+              )}
+
+              <div style={{
+                marginTop: '0.75rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                background: '#F0F7FF',
+                border: '1px solid #BAE6FD',
+                fontSize: '0.78rem',
+                color: '#0369A1',
+                lineHeight: '1.6',
+              }}>
+                <strong style={{color:'#0284C7', fontWeight: 700}}>Test credentials:</strong>
+                <br />
+                Doctor: <code>dr.smith</code> / <code>doctor123</code>
+                <br />
+                Admin: <code>admin</code> / <code>admin123</code>
+              </div>
             </form>
 
             <div className="divider">
@@ -162,7 +251,7 @@ export default function LandingPage() {
               Continue with Google
             </button>
 
-            <button className="btn-demo-login flex items-center justify-center gap-2" onClick={handleGoogleLogin}>
+            <button className="btn-demo-login flex items-center justify-center gap-2" onClick={handleDemoLogin} disabled={loading}>
               <UserCheck size={18} />
               {activeTab === 'employer' ? 'Continue as Demo Employer (No OAuth)' : 'Continue as Demo User (No OAuth)'}
             </button>
@@ -177,26 +266,27 @@ export default function LandingPage() {
           <div className="landing-features stagger-children">
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <Activity size={28} className="text-[var(--accent-cyan)]" style={{ filter: 'drop-shadow(0 0 6px rgba(34,197,94,0.4))' }} />
+                <Activity size={28} className="text-[#0062FF]" style={{ filter: 'drop-shadow(0 2px 6px rgba(0,98,255,0.3))' }} />
               </div>
               <h3>Real-time Monitoring</h3>
               <p>Live cognitive state tracking and biometric visualization</p>
             </div>
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <FileText size={28} className="text-[var(--accent-violet)]" style={{ filter: 'drop-shadow(0 0 6px rgba(21,128,61,0.4))' }} />
+                <FileText size={28} className="text-[#00B4D8]" style={{ filter: 'drop-shadow(0 2px 6px rgba(0,180,216,0.3))' }} />
               </div>
               <h3>EDF File Analysis</h3>
               <p>Upload and analyze patient EEG data with advanced algorithms</p>
             </div>
             <div className="feature-item animate-slide-up">
               <div className="flex justify-center mb-3">
-                <FileText size={28} className="text-[var(--accent-blue)]" style={{ filter: 'drop-shadow(0 0 6px rgba(5,150,105,0.4))' }} />
+                <FileText size={28} className="text-[#4F46E5]" style={{ filter: 'drop-shadow(0 2px 6px rgba(79,70,229,0.3))' }} />
               </div>
               <h3>PDF Reports</h3>
               <p>Generate comprehensive analysis reports for patient records</p>
             </div>
           </div>
+
         </div>
       </div>
     </>

@@ -1,7 +1,12 @@
-import React from 'react';
-import { Brain, ArrowRight, Activity, ShieldCheck, Zap, HeartPulse, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Brain, ArrowRight, Activity, ShieldCheck, Zap, CheckCircle2, Sparkles, TrendingUp, Flame } from 'lucide-react';
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 export default function TaskRecommendationCard({ recommendation }) {
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(null);
+
   const taskTitle = recommendation?.task || 'Practice Easy Problems';
   const situation = recommendation?.situation || (
     'High Beta wave elevation with suppressed Alpha waves and an elevated heart rate (98 BPM). Your neural signals indicate acute cognitive stress detected during high-load SNN cognitive monitoring.'
@@ -14,22 +19,45 @@ export default function TaskRecommendationCard({ recommendation }) {
     'Switch to Tier 1/2 practice problems to consolidate retention without cognitive overload.',
     'Hydrate and step back from high-intensity problem solving for a 5-minute break.'
   ];
-  const difficultyTag = recommendation?.difficulty_tag || 'Tier 1 - Reduced Load';
-  const state = recommendation?.state || 'Stressed';
+  const difficultyTag = recommendation?.difficulty_tag || (recommendation?.difficulty ? `Tier ${recommendation.difficulty} Load` : 'Tier 1 - Reduced Load');
+  const state = recommendation?.cognitive_state || recommendation?.state || 'Stressed';
 
   // Badge styling depending on state
   const stateBadgeStyle = {
     Stressed: 'bg-amber-100 text-amber-800 border-amber-300',
     Focused: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     Neutral: 'bg-blue-100 text-blue-800 border-blue-300',
-  }[state] || 'bg-emerald-100 text-emerald-800 border-emerald-300';
+  }[state] || 'bg-blue-100 text-blue-800 border-blue-300';
+
+  const handleFeedback = async (rewardVal, label) => {
+    try {
+      setSubmittingFeedback(true);
+      const res = await fetch(`${API_BASE}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          state: state || 'Neutral',
+          task_id: recommendation?.task_index ?? 0,
+          reward: rewardVal
+        })
+      });
+      if (res.ok) {
+        setFeedbackSuccess(`Q-table updated: ${label} (${rewardVal > 0 ? '+' : ''}${rewardVal})`);
+        setTimeout(() => setFeedbackSuccess(null), 4000);
+      }
+    } catch (err) {
+      console.warn("Feedback update failed:", err);
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
 
   return (
     <div className="recommendation-card p-5 bg-[var(--bg-surface)] rounded-2xl border border-[var(--border-subtle)] shadow-sm hover:shadow-md transition-all duration-300">
       {/* Header */}
       <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-emerald-50 text-[var(--accent-cyan)]">
+          <div className="p-2 rounded-xl bg-blue-50 text-[var(--accent-cyan)]">
             <Brain size={22} />
           </div>
           <div>
@@ -43,7 +71,7 @@ export default function TaskRecommendationCard({ recommendation }) {
       </div>
 
       {/* Main Next Action Box */}
-      <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-950/20 via-emerald-900/10 to-transparent border border-emerald-500/20 mb-4">
+      <div className="p-4 rounded-xl bg-gradient-to-r from-blue-950/20 via-blue-900/10 to-transparent border border-blue-500/20 mb-4">
         <div className="flex items-center justify-between mb-1.5">
           <span className="text-[0.7rem] font-bold tracking-wider uppercase text-[var(--accent-cyan)] flex items-center gap-1">
             <Zap size={14} /> Recommended Next Action
@@ -85,8 +113,53 @@ export default function TaskRecommendationCard({ recommendation }) {
         </div>
       </div>
 
+      {/* Interactive Q-Learning Reinforcement Loop */}
+      <div className="pt-3.5 border-t border-[var(--border-subtle)] mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[0.68rem] font-bold uppercase tracking-wider text-[var(--text-muted)] flex items-center gap-1">
+            <Sparkles size={13} className="text-blue-600" />
+            Rate Recommendation (Q-Learning Feedback)
+          </span>
+          {feedbackSuccess && (
+            <span className="text-[0.68rem] text-emerald-600 font-semibold animate-fade-in flex items-center gap-1">
+              <CheckCircle2 size={12} /> {feedbackSuccess}
+            </span>
+          )}
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => handleFeedback(1.0, "Completed")}
+            disabled={submittingFeedback}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            title="Mark completed (+1.0 reward to Q-table)"
+          >
+            <CheckCircle2 size={14} className="text-emerald-600" />
+            <span>Done (+1)</span>
+          </button>
+          <button
+            onClick={() => handleFeedback(0.5, "Too Easy")}
+            disabled={submittingFeedback}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            title="Request higher difficulty tier (+0.5 reward)"
+          >
+            <TrendingUp size={14} className="text-blue-600" />
+            <span>Easy (+0.5)</span>
+          </button>
+          <button
+            onClick={() => handleFeedback(-0.5, "Too Hard")}
+            disabled={submittingFeedback}
+            className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            title="Request cognitive load reduction (-0.5 reward)"
+          >
+            <Flame size={14} className="text-amber-600" />
+            <span>Hard (-0.5)</span>
+          </button>
+        </div>
+      </div>
+
       {/* SNN Adaptation Rationale */}
-      <div className="pt-3 border-t border-[var(--border-subtle)]">
+      <div className="pt-2 border-t border-[var(--border-subtle)]">
         <p className="text-[0.72rem] text-[var(--text-muted)] italic leading-relaxed">
           <strong className="not-italic text-[var(--text-secondary)]">Why this change: </strong>
           {reasoning}

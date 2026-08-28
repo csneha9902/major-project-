@@ -63,7 +63,7 @@ export default function GlowButton({
     ghost: `
       bg-white/70 border border-[rgba(34,197,94,0.25)]
       text-[#166534]
-      hover:bg-emerald-50 hover:text-[#14532D]
+      hover:bg-blue-50 hover:text-[#14532D]
       hover:border-[rgba(34,197,94,0.5)]
       hover:-translate-y-0.5
       active:translate-y-0
