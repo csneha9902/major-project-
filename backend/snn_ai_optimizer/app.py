@@ -383,11 +383,13 @@ async def get_history():
         return {"runs": runs[-100:]}  # last 100
     except Exception:
         return JSONResponse({"runs": []})
+import os
 from fastapi.staticfiles import StaticFiles
 
 # Expose raw files so you can download exact artifacts:
 # e.g. http://localhost:8000/files/hybrid/metrics.json
 #      http://localhost:8000/files/history/metrics_log.json
+os.makedirs("results", exist_ok=True)
 app.mount("/files", StaticFiles(directory="results", html=False), name="files")
 
 # ------------------ Streaming API per dev_plan ------------------

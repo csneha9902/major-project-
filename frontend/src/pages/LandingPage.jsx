@@ -251,9 +251,22 @@ export default function LandingPage() {
               Continue with Google
             </button>
 
+<<<<<<< HEAD
             <button className="btn-demo-login flex items-center justify-center gap-2" onClick={handleDemoLogin} disabled={loading}>
+=======
+            <button 
+              className="btn-demo-login flex items-center justify-center gap-2" 
+              onClick={() => {
+                if (activeTab === 'employer') {
+                  navigate('/demo');
+                } else {
+                  handleGoogleLogin();
+                }
+              }}
+            >
+>>>>>>> 340dcbec52ed796eb91c60773f1293a6610ce04d
               <UserCheck size={18} />
-              {activeTab === 'employer' ? 'Continue as Demo Employer (No OAuth)' : 'Continue as Demo User (No OAuth)'}
+              {activeTab === 'employer' ? 'Explore Demo Employer Version (Pre-loaded Patients)' : 'Continue as Demo User (No OAuth)'}
             </button>
 
             <p className="landing-note">
